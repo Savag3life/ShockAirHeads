@@ -1,0 +1,10 @@
+main: not.savage.airheads.AirHeadsPlugin
+version: 1.0.0
+api-version: 1.21
+name: ShockAirHeads
+authors: [ Savage, SupremeVentures ]
+
+commands:
+  airheads:
+    description: Interact with AirHeads in-game, and reload!
+    usage: /airheads
