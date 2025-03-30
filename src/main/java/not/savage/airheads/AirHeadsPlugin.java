@@ -9,6 +9,7 @@ import not.savage.airheads.utility.ConfigBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -40,6 +41,22 @@ public class AirHeadsPlugin extends JavaPlugin {
 
         loadConfig();
         getLogger().info("Loaded ShockAirHeads config from " + getDataFolder().getAbsolutePath() + "/config.yml");
+
+        if (airHeadsConfig.isRunCleanupOnStart()) {
+            getLogger().info("Cleaning up any stray AirHeads...");
+            Bukkit.getWorlds().forEach(world -> {
+                world.getEntities().forEach(entity -> {
+                    if (entity.getPersistentDataContainer().has(AirHeadEntity.KEY, PersistentDataType.BOOLEAN)) {
+                        getLogger().info("Removing stray AirHead entity... " +
+                                "(x: " + entity.getLocation().getBlockX() +
+                                ", y: " + entity.getLocation().getBlockY() +
+                                ", z: " + entity.getLocation().getBlockZ() + ")"
+                        );
+                        entity.remove();
+                    }
+                });
+            });
+        }
 
         spawnEntities();
         getLogger().info(String.format("Spawned all AirHeads (%d)", entities.size()));

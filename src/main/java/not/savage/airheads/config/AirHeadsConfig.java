@@ -16,6 +16,7 @@ import java.util.List;
 public class AirHeadsConfig {
 
     private long floatAnimationOffsetTicks = 20;
+    private boolean runCleanupOnStart = false;
     private List<AirHead> airHeads = new ArrayList<>(Arrays.asList(
             new AirHead()
     ));
