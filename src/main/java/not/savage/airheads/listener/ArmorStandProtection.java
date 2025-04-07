@@ -1,5 +1,6 @@
 package not.savage.airheads.listener;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import not.savage.airheads.AirHeadEntity;
 import not.savage.airheads.AirHeadsPlugin;
 import org.bukkit.Bukkit;
@@ -29,13 +30,36 @@ public class ArmorStandProtection implements Listener {
         if (isProtectedArmorStand(event.getRightClicked())) {
             event.setCancelled(true);
             this.plugin.findAirHeadByEntity((ArmorStand) event.getRightClicked())
-                    .ifPresent(
-                            airHead -> airHead.getConfig()
-                                    .getInteractCommands()
-                                    .forEach(
-                                            cmd -> Bukkit.dispatchCommand(event.getPlayer(), cmd)
-                                    )
-                    );
+                    .ifPresent(airHead -> {
+
+                        airHead.getConfig()
+                                .getInteractCommands()
+                                .forEach(
+                                        cmd -> Bukkit.dispatchCommand(event.getPlayer(), cmd)
+                                );
+
+                        airHead.getConfig()
+                                .getConsoleCommands()
+                                .forEach(
+                                        cmd -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", event.getPlayer().getName()))
+                                );
+
+                        if (!airHead.getConfig().getInteractMessage().isEmpty()) {
+                            airHead.getConfig().getInteractMessage().forEach(line ->
+                                    event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(line)));
+                        }
+
+
+                        if (airHead.getConfig().getSoundSettings().isEnabled()) {
+                            event.getPlayer().playSound(
+                                    event.getPlayer(),
+                                    airHead.getConfig().getSoundSettings().getSound(),
+                                    airHead.getConfig().getSoundSettings().getVolume(),
+                                    airHead.getConfig().getSoundSettings().getPitch()
+                            );
+                        }
+
+                    });
         }
     }
 

@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,11 +26,29 @@ public class AirHead {
             "<gray>supremeventures.ca/discord"
     );
 
+    @Comment("The offset of the hologram above the head. Larger Number = Higher")
+    private double hologramOffset = 1.3;
+
     @Comment("The head texture, in base64 format. You can use https://minecraft-heads.com/ to get a texture.")
     private String headTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzM5ZWU3MTU0OTc5YjNmODc3MzVhMWM4YWMwODc4MTRiNzkyOGQwNTc2YTI2OTViYTAxZWQ2MTYzMTk0MjA0NSJ9fX0=";
 
     @Comment("Commands to execute when head is interacted with. Executed as the integrating player.")
     private List<String> interactCommands = List.of("discord");
+
+    @Comment("Commands to execute when head is interacted with. Executed as console sender.")
+    private List<String> consoleCommands = new ArrayList<>();
+
+    @Comment("Message to send when interacted with. Supports mini-message.")
+    private List<String> interactMessage = new ArrayList<>();
+
+    @Comment("Sound to be played when interacting")
+    @Getter private SoundSettings soundSettings = new SoundSettings();
+    @ConfigSerializable public static class SoundSettings {
+        @Getter private float volume = 1.0f;
+        @Getter private float pitch = 1.0f;
+        @Getter private String sound = "BLOCK_NOTE_BLOCK_HAT";
+        @Getter private boolean enabled = true;
+    }
 
     @Comment("Should the head do a floating animation going up and down?")
     private boolean doFloat = true;
@@ -49,4 +68,6 @@ public class AirHead {
     @Comment("How fast the head rotates, Smaller Number = Slower")
     private int rotationPerTick = 5;
 
+    @Comment("Change the scale of the airhead entity. Larger Number = Bigger")
+    private double scale = 1.0;
 }

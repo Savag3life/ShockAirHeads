@@ -11,6 +11,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attributable;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.EquipmentSlot;
@@ -34,6 +37,7 @@ public class AirHeadEntity {
     private final AirHead config;
 
     private final Location location;
+    private final double hologramOffset;
     private ArmorStand head;
     private int floatTask = -1;
     private Hologram hologram;
@@ -49,6 +53,7 @@ public class AirHeadEntity {
     protected AirHeadEntity(AirHead config, long delayedTicks) {
         this.config = config;
         this.location = config.getLocation();
+        this.hologramOffset = config.getHologramOffset();
         this.activeAfter = System.currentTimeMillis() + (delayedTicks * 50);
     }
 
@@ -58,13 +63,20 @@ public class AirHeadEntity {
      * start the float animation, and spawn the hologram.
      */
     public void spawnAirHead() {
-        head = (ArmorStand) location.getWorld().spawnEntity(location, EntityType.ARMOR_STAND);
-        head.setGravity(false);
-        head.setBasePlate(false);
-        head.setInvisible(true);
-        head.setInvisible(true);
-        head.setArms(false);
-        head.getPersistentDataContainer().set(KEY, PersistentDataType.BOOLEAN, true);
+        head = location.getWorld().spawn(location, ArmorStand.class, entity -> {
+            entity.setGravity(false);
+            entity.setBasePlate(false);
+            entity.setInvisible(true);
+            entity.setInvulnerable(true);
+            entity.setArms(false);
+            entity.getPersistentDataContainer().set(KEY, PersistentDataType.BOOLEAN, true);
+
+            entity.getAttribute(Attribute.SCALE).setBaseValue(config.getScale());
+            entity.registerAttribute(Attribute.ENTITY_INTERACTION_RANGE);
+            entity.getAttribute(Attribute.ENTITY_INTERACTION_RANGE).setBaseValue(entity.getBoundingBox().getWidthX());
+        });
+
+        head.teleport(head.getLocation().clone().add(0.5, -head.getBoundingBox().expand(this.getConfig().getScale()).getHeight(), 0.5));
 
         ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) playerHead.getItemMeta();
@@ -77,9 +89,14 @@ public class AirHeadEntity {
                 .runTaskTimer(JavaPlugin.getProvidingPlugin(getClass()), 0, 1)
                 .getTaskId();
 
-        this.hologram = HologramAPI.createHologram(location.add(0, 3, 0));
-        for (String line : config.getHologramText()) {
-            hologram.appendTextLine(MiniMessage.miniMessage().deserialize(line));
+        if (!config.getHologramText().isEmpty()) {
+            // boundingBox.getHeight is the top of the airhead armorstand,
+            // so we need origin + box height - 2
+            // -2 is to account for the armor stand height of the hologram.
+            this.hologram = HologramAPI.createHologram(location.clone().add(0, head.getBoundingBox().getHeight() + getHologramOffset(), 0));
+            for (String line : config.getHologramText()) {
+                hologram.appendTextLine(MiniMessage.miniMessage().deserialize(line));
+            }
         }
     }
 

@@ -19,8 +19,6 @@ public class LocationConfigAdapter implements TypeSerializer<Location> {
     private final String LOCATION_X_POS_NODE = "x";
     private final String LOCATION_Y_POS_NODE = "y";
     private final String LOCATION_Z_POS_NODE = "z";
-    private final String LOCATION_PITCH_NODE = "pitch";
-    private final String LOCATION_YAW_NODE   = "yaw";
 
     @Override
     public Location deserialize(Type type, ConfigurationNode value) throws SerializationException {
@@ -34,10 +32,7 @@ public class LocationConfigAdapter implements TypeSerializer<Location> {
         double y = getValueIfPresent(value, LOCATION_Y_POS_NODE, Double.class, 0.0D);
         double z = getValueIfPresent(value, LOCATION_Z_POS_NODE, Double.class, 0.0D);
 
-        float pitch = getValueIfPresent(value, LOCATION_PITCH_NODE, Float.class, 0.0F);
-        float yaw = getValueIfPresent(value, LOCATION_YAW_NODE, Float.class, 0.0F);
-
-        return new Location(Bukkit.getWorld(worldKey), x, y, z, yaw, pitch);
+        return new Location(Bukkit.getWorld(worldKey), x, y, z);
     }
 
     @Override
@@ -51,8 +46,6 @@ public class LocationConfigAdapter implements TypeSerializer<Location> {
         node.node(LOCATION_X_POS_NODE).set(obj.getX());
         node.node(LOCATION_Y_POS_NODE).set(obj.getY());
         node.node(LOCATION_Z_POS_NODE).set(obj.getZ());
-        node.node(LOCATION_PITCH_NODE).set(obj.getPitch());
-        node.node(LOCATION_YAW_NODE).set(obj.getYaw());
     }
 
     private <V> V getValueIfPresent(ConfigurationNode node, String field, Class<V> type, V defValue) throws SerializationException {

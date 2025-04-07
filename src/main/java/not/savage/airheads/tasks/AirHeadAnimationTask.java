@@ -27,8 +27,8 @@ public class AirHeadAnimationTask extends BukkitRunnable {
 
     public AirHeadAnimationTask(Location origin, AirHeadEntity airHead, long initialDelay) {
         this.airHead = airHead;
-        this.minY = origin.getY() - this.airHead.getConfig().getFloatDownMax(); // min height
-        this.maxY = origin.getY() + this.airHead.getConfig().getFloatUpMax(); // max height
+        this.minY = (origin.getY() - airHead.getHead().getBoundingBox().expand(airHead.getConfig().getScale()).getHeight()) - this.airHead.getConfig().getFloatDownMax(); // min height
+        this.maxY = (origin.getY() - airHead.getHead().getBoundingBox().expand(airHead.getConfig().getScale()).getHeight()) + this.airHead.getConfig().getFloatUpMax(); // max height
         double ticks = this.airHead.getConfig().getFloatCycleDurationTicks(); // Total ticks for a full float cycle
         this.stepHeight = (maxY - minY) / (ticks / 2); // Movement per tick
         this.rotationSpeed = this.airHead.getConfig().getRotationPerTick();
@@ -73,8 +73,8 @@ public class AirHeadAnimationTask extends BukkitRunnable {
             }
         }
 
-        // Teleport entities - If we supported Paper natively, we could asyncTeleport here.
         airHead.getHead().teleport(curr);
-        airHead.getHologram().teleport(curr.clone().add(0, 3, 0));
+        if (airHead.getHologram() != null)
+            airHead.getHologram().teleport(curr.clone().add(0, airHead.getHead().getBoundingBox().getHeight() + airHead.getHologramOffset(), 0));
     }
 }
