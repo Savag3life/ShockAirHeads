@@ -12,4 +12,4 @@ A simple but more creative solution to the typical need for an NPC/Citizen. Inst
 
 ![airheads](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/animation.gif)
 ![airheads-1](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/interact.gif)
-![airheads-2](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/scale_and_quality.gif)
+![airheads-2](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/scale_and_quality.mp4)
