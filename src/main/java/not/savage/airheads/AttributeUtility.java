@@ -2,6 +2,7 @@ package not.savage.airheads;
 
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
 
@@ -11,6 +12,7 @@ public class AttributeUtility {
     private static Field INTERACTION_RANGE_ATTRIBUTE;
 
     static {
+        JavaPlugin plugin = JavaPlugin.getProvidingPlugin(AttributeUtility.class);
         String[] gameVersion = Bukkit.getServer().getMinecraftVersion().split("\\.");
         int majorVersion = Integer.parseInt(gameVersion[1]);
         int minorVersion = Integer.parseInt(gameVersion[2]);
@@ -24,8 +26,9 @@ public class AttributeUtility {
                 try {
                     SCALE_ATTRIBUTE = Attribute.class.getDeclaredField("GENERIC_SCALE");
                     INTERACTION_RANGE_ATTRIBUTE = Attribute.class.getDeclaredField("PLAYER_ENTITY_INTERACTION_RANGE");
+                    plugin.getLogger().info("Using GENERIC_SCALE for 1.20.5");
                 } catch (NoSuchFieldException e) {
-                    throw new RuntimeException("Failed to get scale attribute", e);
+                    plugin.getLogger().warning("Failed to resolve SCALE attribute field for " + Bukkit.getServer().getMinecraftVersion() + ". Tried to use GENERIC_SCALE.");
                 }
             }
         } else { // >= 1.21
@@ -33,15 +36,17 @@ public class AttributeUtility {
                 try {
                     SCALE_ATTRIBUTE = Attribute.class.getDeclaredField("GENERIC_SCALE");
                     INTERACTION_RANGE_ATTRIBUTE = Attribute.class.getDeclaredField("PLAYER_ENTITY_INTERACTION_RANGE");
+                    plugin.getLogger().info("Using GENERIC_SCALE for <1.21.2");
                 } catch (NoSuchFieldException e) {
-                    throw new RuntimeException("Failed to get scale attribute", e);
+                    plugin.getLogger().warning("Failed to resolve SCALE attribute field for " + Bukkit.getServer().getMinecraftVersion() + ". Tried to use GENERIC_SCALE.");
                 }
             } else {
                 try {
                     SCALE_ATTRIBUTE = Attribute.class.getDeclaredField("SCALE");
                     INTERACTION_RANGE_ATTRIBUTE = Attribute.class.getDeclaredField("ENTITY_INTERACTION_RANGE");
+                    plugin.getLogger().info("Using SCALE for >=1.21.2");
                 } catch (NoSuchFieldException e) {
-                    throw new RuntimeException("Failed to get scale attribute", e);
+                    plugin.getLogger().warning("Failed to resolve SCALE attribute field for " + Bukkit.getServer().getMinecraftVersion() + ". Tried to use SCALE.");
                 }
             }
         }

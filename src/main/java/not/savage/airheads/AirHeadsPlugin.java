@@ -40,18 +40,6 @@ public class AirHeadsPlugin extends JavaPlugin {
             return;
         }
 
-        try {
-            Class<?> clazz = Class.forName("org.bukkit.attribute.Attribute");
-            for (Field field : clazz.getDeclaredFields()) {
-                System.out.println(field.getName() + " " + field.getType());
-            }
-        } catch (ClassNotFoundException e) {
-            getLogger().severe("This version of AirHeads requires Paper 1.20.2 or newer!");
-            getLogger().severe("Please update your server to the latest version of Paper.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
         loadConfig();
         getLogger().info("Loaded ShockAirHeads config from " + getDataFolder().getAbsolutePath() + "/config.yml");
 
