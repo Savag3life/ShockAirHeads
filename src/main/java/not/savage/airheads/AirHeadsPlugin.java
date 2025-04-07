@@ -14,6 +14,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -35,6 +36,18 @@ public class AirHeadsPlugin extends JavaPlugin {
 
         if (!setupHologramBridge()) {
             getLogger().severe("Failed to setup HologramBridge!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        try {
+            Class<?> clazz = Class.forName("org.bukkit.attribute.Attribute");
+            for (Field field : clazz.getDeclaredFields()) {
+                System.out.println(field.getName() + " " + field.getType());
+            }
+        } catch (ClassNotFoundException e) {
+            getLogger().severe("This version of AirHeads requires Paper 1.20.2 or newer!");
+            getLogger().severe("Please update your server to the latest version of Paper.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }

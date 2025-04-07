@@ -11,16 +11,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.lang.reflect.Field;
 
 /**
  * Represents an actual "AirHead" in-game & all of its various components.
@@ -71,9 +70,14 @@ public class AirHeadEntity {
             entity.setArms(false);
             entity.getPersistentDataContainer().set(KEY, PersistentDataType.BOOLEAN, true);
 
-            entity.getAttribute(Attribute.SCALE).setBaseValue(config.getScale());
-            entity.registerAttribute(Attribute.ENTITY_INTERACTION_RANGE);
-            entity.getAttribute(Attribute.ENTITY_INTERACTION_RANGE).setBaseValue(entity.getBoundingBox().getWidthX());
+            Attribute scalerAttribute = AttributeUtility.getScaleAttribute();
+            if (scalerAttribute != null) {
+                entity.registerAttribute(AttributeUtility.getScaleAttribute());
+                entity.getAttribute(AttributeUtility.getScaleAttribute()).setBaseValue(config.getScale());
+
+                entity.registerAttribute(AttributeUtility.getInteractionRangeAttribute());
+                entity.getAttribute(AttributeUtility.getInteractionRangeAttribute()).setBaseValue(entity.getBoundingBox().getWidthX());
+            }
         });
 
         head.teleport(head.getLocation().clone().add(0.5, -head.getBoundingBox().expand(this.getConfig().getScale()).getHeight(), 0.5));
