@@ -22,7 +22,7 @@ public class AttributeUtility {
             if (majorVersion < 20 && minorVersion < 5) {
                 SCALE_ATTRIBUTE = null;
                 INTERACTION_RANGE_ATTRIBUTE = null;
-            } else if (majorVersion == 20 && minorVersion == 5) { // 1.20.5
+            } else if (majorVersion == 20 && (minorVersion == 5 || minorVersion == 6)) { // 1.20.5 & 1.20.6
                 try {
                     SCALE_ATTRIBUTE = Attribute.class.getDeclaredField("GENERIC_SCALE");
                     INTERACTION_RANGE_ATTRIBUTE = Attribute.class.getDeclaredField("PLAYER_ENTITY_INTERACTION_RANGE");
