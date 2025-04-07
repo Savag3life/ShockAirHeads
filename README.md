@@ -6,7 +6,10 @@ A simple but more creative solution to the typical need for an NPC/Citizen. Inst
 - Configure each AirHeads animation, appearance, and behavior.
 - Lightweight, no dependencies, and easy to use.
 - [Hologram Bridge Support](https://github.com/Chubbyduck1/HologramBridge) - Use Holograms, HolographicDisplays, CMI, or DecentHolograms.
+- Scale heads up to 10x normal size, and down to 5% of normal size.
+- Sends messages, play sounds, dispatch console commands or execute commands as the player.
 - Does __not require__ [SVCommonsLib](https://supremeventures.ca/discord)! But you should still check us out :p
 
 ![airheads](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/animation.gif)
 ![airheads-1](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/interact.gif)
+![airheads-2](https://gyazo.com/afca0d94ab30f9dd98eabfcacdc798d1)
