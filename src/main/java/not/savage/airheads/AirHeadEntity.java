@@ -1,107 +1,167 @@
 package not.savage.airheads;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.player.Equipment;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
 import gg.optimalgames.hologrambridge.HologramAPI;
 import gg.optimalgames.hologrambridge.hologram.Hologram;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import not.savage.airheads.config.AirHead;
-import not.savage.airheads.tasks.AirHeadAnimationTask;
+import not.savage.airheads.tasks.FloatAnimationTask;
 import not.savage.airheads.utility.Heads;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-/**
- * Represents an actual "AirHead" in-game & all of its various components.
- * The Hologram above the head is provided by {@link gg.optimalgames.hologrambridge.HologramBridge}
- * The float & rotation animation is handled in {@link AirHeadAnimationTask}
- * Do not keep long-term references to this object, as it will be removed when the plugin is reloaded.
- * Use {@link AirHeadsPlugin#findAirHeadByEntity(ArmorStand)} to detect if an ArmorStand is an AirHead.
- */
 @Getter
 public class AirHeadEntity {
 
-    public static final NamespacedKey KEY = new NamespacedKey("airheads", "armor_stand");
+    // Armor Stand AABB is 0.5 x 0.5 x 1.975
+    private final float DEFAULT_ARMOR_STAND_HEIGHT = 1.975F;
 
+    private final AirHeadsPlugin plugin;
     private final AirHead config;
 
-    private final Location location;
-    private final double hologramOffset;
-    private ArmorStand head;
-    private int floatTask = -1;
-    private Hologram hologram;
+    private final int entityId;
+    private final UUID uuid;
+
+    @Setter private Location currentLocation;
+    @Getter private final ItemStack headItem;
+    private final int floatTask;
+    private final Hologram hologram;
     private final long activeAfter;
 
     /**
      * This plugin does not currently provide API support for
      * using AirHeads outside the configs of the commands & the config.
-     * TODO: Add API support for creating AirHeads via a developer API.
      * @param config The AirHead configuration
      * @param delayedTicks The number of ticks to delay the AirHead from spawning.
      */
-    protected AirHeadEntity(AirHead config, long delayedTicks) {
+    public AirHeadEntity(AirHeadsPlugin plugin, AirHead config, long delayedTicks) {
+        this.plugin = plugin;
         this.config = config;
-        this.location = config.getLocation();
-        this.hologramOffset = config.getHologramOffset();
+        this.currentLocation = config.getLocation().clone().add(0.5, -trueHeight(), 0.5);
         this.activeAfter = System.currentTimeMillis() + (delayedTicks * 50);
-    }
 
-    /**
-     * Initialize the AirHead entities in the world.
-     * This will spawn the ArmorStand, set the head texture,
-     * start the float animation, and spawn the hologram.
-     */
-    public void spawnAirHead() {
-        head = location.getWorld().spawn(location, ArmorStand.class, entity -> {
-            entity.setGravity(false);
-            entity.setBasePlate(false);
-            entity.setInvisible(true);
-            entity.setInvulnerable(true);
-            entity.setArms(false);
-            entity.getPersistentDataContainer().set(KEY, PersistentDataType.BOOLEAN, true);
+        this.entityId = SpigotReflectionUtil.generateEntityId();
+        this.uuid = UUID.randomUUID();
 
-            Attribute scalerAttribute = AttributeUtility.getScaleAttribute();
-            if (scalerAttribute != null) {
-                entity.registerAttribute(AttributeUtility.getScaleAttribute());
-                entity.getAttribute(AttributeUtility.getScaleAttribute()).setBaseValue(config.getScale());
-
-                entity.registerAttribute(AttributeUtility.getInteractionRangeAttribute());
-                entity.getAttribute(AttributeUtility.getInteractionRangeAttribute()).setBaseValue(entity.getBoundingBox().getWidthX());
-            }
-        });
-
-        head.teleport(head.getLocation().clone().add(0.5, -head.getBoundingBox().expand(this.getConfig().getScale()).getHeight(), 0.5));
-
-        ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) playerHead.getItemMeta();
-        Heads.setBase64ToSkullMeta(config.getHeadTexture(), meta);
-        playerHead.setItemMeta(meta);
-
-        head.setItem(EquipmentSlot.HEAD, playerHead);
-
-        this.floatTask = new AirHeadAnimationTask(location, this, activeAfter)
-                .runTaskTimer(JavaPlugin.getProvidingPlugin(getClass()), 0, 1)
+        this.floatTask = new FloatAnimationTask(currentLocation, this, activeAfter)
+                .runTaskTimerAsynchronously(JavaPlugin.getProvidingPlugin(getClass()), 0, 1)
                 .getTaskId();
 
         if (!config.getHologramText().isEmpty()) {
-            // boundingBox.getHeight is the top of the airhead armorstand,
-            // so we need origin + box height - 2
-            // -2 is to account for the armor stand height of the hologram.
-            this.hologram = HologramAPI.createHologram(location.clone().add(0, head.getBoundingBox().getHeight() + getHologramOffset(), 0));
+            this.hologram = HologramAPI.createHologram(currentLocation.clone().add(0, getHologramOffset(), 0));
             for (String line : config.getHologramText()) {
-                hologram.appendTextLine(MiniMessage.miniMessage().deserialize(line));
+                this.hologram.appendTextLine(MiniMessage.miniMessage().deserialize(line));
             }
+            this.hologram.getVisibilityManager().setVisibleByDefault(false);
+        } else {
+            this.hologram = null;
         }
+
+        final org.bukkit.inventory.ItemStack head = new org.bukkit.inventory.ItemStack(Material.PLAYER_HEAD, 1);
+        final SkullMeta meta = (SkullMeta) head.getItemMeta();
+        Heads.setBase64ToSkullMeta(config.getHeadTexture(), meta);
+        head.setItemMeta(meta);
+        this.headItem = SpigotConversionUtil.fromBukkitItemStack(head);
+    }
+
+    public void spawnForPlayer(Player player) {
+        // Spawn the entity.
+        CompletableFuture.runAsync(() -> {
+            final WrapperPlayServerSpawnEntity entitySpawnPacket = new WrapperPlayServerSpawnEntity(
+                    this.entityId,
+                    this.uuid,
+                    SpigotConversionUtil.fromBukkitEntityType(EntityType.ARMOR_STAND),
+                    SpigotConversionUtil.fromBukkitLocation(this.currentLocation),
+                    0.0F,
+                    0,
+                    null
+            );
+
+            // Dress the entity
+            final WrapperPlayServerEntityEquipment entityEquipPacket = new WrapperPlayServerEntityEquipment(
+                    this.entityId,
+                    List.of(new Equipment(
+                            com.github.retrooper.packetevents.protocol.player.EquipmentSlot.HELMET,
+                            headItem
+                    ))
+            );
+
+            // Protect the entity
+            final WrapperPlayServerEntityMetadata entityMetaPacket = new WrapperPlayServerEntityMetadata(
+                    this.entityId,
+                    List.of(
+                            new EntityData( // Invisible
+                                    0,
+                                    EntityDataTypes.BYTE,
+                                    (byte) 0x20
+                            )
+                    )
+            );
+
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player, entitySpawnPacket);
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player, entityEquipPacket);
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player, entityMetaPacket);
+
+            if (config.getScale() != 1.0) {
+                // We only need to send an Attribute packet if the scale is not 1.0 (None-Default)
+                WrapperPlayServerUpdateAttributes entityAttributes = createAttributePacket();
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, entityAttributes);
+            }
+
+        }).thenAcceptAsync(v -> {
+            // May be needed to await completion and then execute after, but im
+            // not sure of the behavior when entities are modified before the client knows they exist.
+            // May be something to address later in a PR
+        });
+        this.hologram.getVisibilityManager().showTo(player);
+    }
+
+    private @NotNull WrapperPlayServerUpdateAttributes createAttributePacket() {
+        final WrapperPlayServerUpdateAttributes.Property scale = new WrapperPlayServerUpdateAttributes.Property(
+                Attributes.SCALE,
+                config.getScale(),
+                new ArrayList<>()
+        );
+
+        final WrapperPlayServerUpdateAttributes.Property interactionRange = new WrapperPlayServerUpdateAttributes.Property(
+                Attributes.ENTITY_INTERACTION_RANGE,
+                config.getScale(),
+                new ArrayList<>()
+        );
+
+        return new WrapperPlayServerUpdateAttributes(getEntityId(), List.of(scale, interactionRange));
+    }
+
+    public void teleport(Location location) {
+        final WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(getEntityId(), SpigotConversionUtil.fromBukkitLocation(location), false);
+        CompletableFuture.runAsync(() -> {
+            getCurrentLocation().getWorld().getPlayers().forEach(player -> PacketEvents.getAPI().getPlayerManager().sendPacket(player, teleportPacket));
+        });
+        setCurrentLocation(location);
+
+        if (getHologram() != null)
+            getHologram().teleport(location.clone().add(0, getHologramOffset(), 0));
     }
 
     /**
@@ -112,12 +172,27 @@ public class AirHeadEntity {
             Bukkit.getScheduler().cancelTask(floatTask);
         }
 
-        if (head != null) {
-            head.remove();
-        }
+        final WrapperPlayServerDestroyEntities destroyPacket = new WrapperPlayServerDestroyEntities(getEntityId());
+        currentLocation.getWorld().getPlayers().forEach(player -> {
+            if (player.isOnline()) {
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
+            }
+        });
 
         if (hologram != null) {
             hologram.delete();
         }
+    }
+
+    public double trueHeight() {
+        if (config.getScale() == 1.0) return DEFAULT_ARMOR_STAND_HEIGHT;
+        if (config.getScale() < 1.0) {
+            return DEFAULT_ARMOR_STAND_HEIGHT * config.getScale();
+        }
+        return DEFAULT_ARMOR_STAND_HEIGHT + config.getScale();
+    }
+
+    public double getHologramOffset() {
+        return trueHeight() + config.getHologramOffset();
     }
 }

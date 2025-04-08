@@ -1,16 +1,15 @@
 package not.savage.airheads.tasks;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import not.savage.airheads.AirHeadEntity;
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitRunnable;
 
-/**
- * The floating animation & head-rotation task for an AirHead.
- * Each AirHead has its own task to manage its animation. This task is responsible for moving the head up and down
- * and rotating it around its Y-axis.
- * @see AirHeadEntity
- */
-public class AirHeadAnimationTask extends BukkitRunnable {
+import java.util.concurrent.CompletableFuture;
+
+public class FloatAnimationTask extends BukkitRunnable {
 
     private final AirHeadEntity airHead;
 
@@ -25,10 +24,10 @@ public class AirHeadAnimationTask extends BukkitRunnable {
     private int rot = -180;
     private boolean goingUp = true;
 
-    public AirHeadAnimationTask(Location origin, AirHeadEntity airHead, long initialDelay) {
+    public FloatAnimationTask(Location origin, AirHeadEntity airHead, long initialDelay) {
         this.airHead = airHead;
-        this.minY = (origin.getY() - airHead.getHead().getBoundingBox().expand(airHead.getConfig().getScale()).getHeight()) - this.airHead.getConfig().getFloatDownMax(); // min height
-        this.maxY = (origin.getY() - airHead.getHead().getBoundingBox().expand(airHead.getConfig().getScale()).getHeight()) + this.airHead.getConfig().getFloatUpMax(); // max height
+        this.minY = (origin.getY() - this.airHead.getConfig().getFloatDownMax()); // min height
+        this.maxY = (origin.getY() + this.airHead.getConfig().getFloatUpMax()); // max height
         double ticks = this.airHead.getConfig().getFloatCycleDurationTicks(); // Total ticks for a full float cycle
         this.stepHeight = (maxY - minY) / (ticks / 2); // Movement per tick
         this.rotationSpeed = this.airHead.getConfig().getRotationPerTick();
@@ -40,10 +39,9 @@ public class AirHeadAnimationTask extends BukkitRunnable {
         // Initial delay allows server owners to offset similarly timed animations
         // so that it isn't just a line of heads floating up and down at the same speed
         // and level. This is a simple way to add some variety.
-        if (System.currentTimeMillis() < initialDelay) {
-            return;
-        }
-        Location curr = airHead.getHead().getLocation().clone();
+        if (System.currentTimeMillis() < initialDelay) return;
+
+        final Location curr = airHead.getCurrentLocation().clone();
 
         // Can configure an AirHead to not float.
         if (airHead.getConfig().isDoFloat()) {
@@ -73,8 +71,6 @@ public class AirHeadAnimationTask extends BukkitRunnable {
             }
         }
 
-        airHead.getHead().teleport(curr);
-        if (airHead.getHologram() != null)
-            airHead.getHologram().teleport(curr.clone().add(0, airHead.getHead().getBoundingBox().getHeight() + airHead.getHologramOffset(), 0));
+        airHead.teleport(curr);
     }
 }

@@ -1,25 +1,22 @@
 package not.savage.airheads;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import gg.optimalgames.hologrambridge.HologramBridge;
+import lombok.Getter;
 import not.savage.airheads.commands.CmdAirHeads;
 import not.savage.airheads.config.AirHead;
 import not.savage.airheads.config.AirHeadsConfig;
-import not.savage.airheads.listener.ArmorStandProtection;
+import not.savage.airheads.listener.PacketInterceptListener;
 import not.savage.airheads.utility.ConfigBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * The main plugin class for AirHeads.
@@ -27,7 +24,7 @@ import java.util.Optional;
 public class AirHeadsPlugin extends JavaPlugin {
 
     private AirHeadsConfig airHeadsConfig;
-    private final List<AirHeadEntity> entities = new ArrayList<>();
+    @Getter private PacketEntityCache packetEntityCache;
 
     @Override
     public void onEnable() {
@@ -43,29 +40,13 @@ public class AirHeadsPlugin extends JavaPlugin {
         loadConfig();
         getLogger().info("Loaded ShockAirHeads config from " + getDataFolder().getAbsolutePath() + "/config.yml");
 
-        if (airHeadsConfig.isRunCleanupOnStart()) {
-            getLogger().info("Cleaning up any stray AirHeads...");
-            Bukkit.getWorlds().forEach(world -> {
-                world.getEntities().forEach(entity -> {
-                    if (entity.getPersistentDataContainer().has(AirHeadEntity.KEY, PersistentDataType.BOOLEAN)) {
-                        getLogger().info("Removing stray AirHead entity... " +
-                                "(x: " + entity.getLocation().getBlockX() +
-                                ", y: " + entity.getLocation().getBlockY() +
-                                ", z: " + entity.getLocation().getBlockZ() + ")"
-                        );
-                        entity.remove();
-                    }
-                });
-            });
-        }
-
-        spawnEntities();
-        getLogger().info(String.format("Spawned all AirHeads (%d)", entities.size()));
+        getLogger().info("Setting up packet based entities...");
+        this.packetEntityCache = new PacketEntityCache(this);
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketInterceptListener(this), PacketListenerPriority.NORMAL);
+        spawnFakeEntities();
 
         registerCommands();
         getLogger().info("Registered `/airheads reload` command.");
-
-        new ArmorStandProtection(this);
 
         getLogger().info(String.format("ShockAirHeads Plugin loaded in %sms", Duration.between(start, Instant.now()).toMillis()));
     }
@@ -73,18 +54,7 @@ public class AirHeadsPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("Shutting down Shock ShockAirHeads Plugin!");
-        entities.forEach(AirHeadEntity::remove);
-    }
-
-    /**
-     * Find an AirHeadEntity by the armor stand entity.
-     * @param armorStand The armor stand to search for.
-     * @return The AirHeadEntity if found.
-     */
-    public Optional<AirHeadEntity> findAirHeadByEntity(ArmorStand armorStand) {
-        return entities.stream()
-                .filter(entity -> entity.getHead().getUniqueId().equals(armorStand.getUniqueId()))
-                .findFirst();
+        getPacketEntityCache().clear();
     }
 
     /**
@@ -93,9 +63,9 @@ public class AirHeadsPlugin extends JavaPlugin {
     public void reloadPlugin() {
         getLogger().info("Reloading ShockAirHeads Plugin!");
         loadConfig();
-        entities.forEach(AirHeadEntity::remove);
-        entities.clear();
-        spawnEntities();
+        packetEntityCache.clear();
+        spawnFakeEntities();
+        Bukkit.getOnlinePlayers().forEach(player -> packetEntityCache.showWorld(player));
     }
 
     private void registerCommands() {
@@ -111,26 +81,26 @@ public class AirHeadsPlugin extends JavaPlugin {
     }
 
     private void loadConfig() {
-        if (!getDataFolder().exists()) {
-            boolean failed = getDataFolder().mkdir();
-            if (failed) {
+        if (!getDataFolder().exists() && !getDataFolder().mkdir()) {
                 getLogger().severe("Failed to create data folder!");
                 Bukkit.getPluginManager().disablePlugin(this);
                 return;
             }
-        }
+
         airHeadsConfig = new ConfigBuilder<>(AirHeadsConfig.class)
                 .withPath(new File(getDataFolder(), "config.yml").toPath())
                 .build();
     }
 
-    private void spawnEntities() {
+    /**
+     * Spawn / Setup the entity state, ready to be dispatched as players join.
+     */
+    private void spawnFakeEntities() {
         final long offsetTicks = airHeadsConfig.getFloatAnimationOffsetTicks();
         long offset = offsetTicks;
         for (AirHead airHead : airHeadsConfig.getAirHeads()) {
-            AirHeadEntity airHeadEntity = new AirHeadEntity(airHead, offset);
-            airHeadEntity.spawnAirHead();
-            entities.add(airHeadEntity);
+            AirHeadEntity airHeadEntity = new AirHeadEntity(this, airHead, offset);
+            packetEntityCache.addEntity(airHeadEntity.getEntityId(), airHeadEntity);
             offset += offsetTicks;
         }
     }
