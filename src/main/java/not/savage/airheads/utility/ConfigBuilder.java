@@ -5,8 +5,10 @@ import lombok.NonNull;
 import lombok.Setter;
 import not.savage.airheads.utility.adapter.LocationConfigAdapter;
 import not.savage.airheads.utility.adapter.NamespacedKeyAdapter;
+import not.savage.airheads.utility.adapter.SoundAdapter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.jetbrains.annotations.Contract;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationOptions;
@@ -49,7 +51,9 @@ public class ConfigBuilder<T> {
                         NodeStyle.BLOCK
                 );
 
-        typeSerializers.register(Location.class, new LocationConfigAdapter()).register(NamespacedKey.class, new NamespacedKeyAdapter());
+        typeSerializers.register(Location.class, new LocationConfigAdapter())
+                .register(NamespacedKey.class, new NamespacedKeyAdapter())
+                .register(Sound.class, new SoundAdapter());
     }
 
     @Contract("_->this")

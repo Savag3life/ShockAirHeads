@@ -1,8 +1,9 @@
 package not.savage.airheads.config;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import lombok.Getter;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -46,7 +47,7 @@ public class AirHead {
     @ConfigSerializable public static class SoundSettings {
         @Getter private float volume = 1.0f;
         @Getter private float pitch = 1.0f;
-        @Getter private String sound = "BLOCK_NOTE_BLOCK_HAT";
+        @Getter private final Sound sound = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(Sound.ENTITY_PLAYER_LEVELUP.key());
         @Getter private boolean enabled = true;
     }
 
