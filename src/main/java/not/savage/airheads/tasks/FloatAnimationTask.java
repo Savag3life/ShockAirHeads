@@ -1,13 +1,8 @@
 package not.savage.airheads.tasks;
 
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import not.savage.airheads.AirHeadEntity;
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import java.util.concurrent.CompletableFuture;
 
 public class FloatAnimationTask extends BukkitRunnable {
 

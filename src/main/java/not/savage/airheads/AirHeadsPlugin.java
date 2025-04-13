@@ -8,6 +8,7 @@ import not.savage.airheads.commands.CmdAirHeads;
 import not.savage.airheads.config.AirHead;
 import not.savage.airheads.config.AirHeadsConfig;
 import not.savage.airheads.listener.PacketInterceptListener;
+import not.savage.airheads.listener.PlayerListener;
 import not.savage.airheads.utility.ConfigBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -42,7 +43,9 @@ public class AirHeadsPlugin extends JavaPlugin {
 
         getLogger().info("Setting up packet based entities...");
         this.packetEntityCache = new PacketEntityCache(this);
+
         PacketEvents.getAPI().getEventManager().registerListener(new PacketInterceptListener(this), PacketListenerPriority.NORMAL);
+        getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         spawnFakeEntities();
 
         registerCommands();
