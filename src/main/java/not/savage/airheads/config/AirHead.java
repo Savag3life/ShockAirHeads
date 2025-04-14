@@ -3,6 +3,7 @@ package not.savage.airheads.config;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -16,7 +17,7 @@ import java.util.List;
  * The config settings for an individual AirHead.
  * @see not.savage.airheads.config.AirHeadsConfig
  */
-@ConfigSerializable @Getter
+@ConfigSerializable @Getter @Setter
 @SuppressWarnings("FieldMayBeFinal")
 public class AirHead {
 
@@ -46,11 +47,11 @@ public class AirHead {
 
     @Comment("Sound to be played when interacting")
     @Getter private SoundSettings soundSettings = new SoundSettings();
-    @ConfigSerializable public static class SoundSettings {
-        @Getter private float volume = 1.0f;
-        @Getter private float pitch = 1.0f;
-        @Getter private final Sound sound = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(Sound.ENTITY_PLAYER_LEVELUP.key());
-        @Getter private boolean enabled = true;
+    @ConfigSerializable @Setter @Getter public static class SoundSettings {
+         private float volume = 1.0f;
+         private float pitch = 1.0f;
+         private Sound sound = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(Sound.ENTITY_PLAYER_LEVELUP.key());
+         private boolean enabled = true;
     }
 
     @Comment("Should the head do a floating animation going up and down?")
