@@ -2,6 +2,9 @@ package not.savage.airheads.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import not.savage.airheads.AirHeadsPlugin;
+import not.savage.airheads.commands.subcommands.CmdCreate;
+import not.savage.airheads.commands.subcommands.CmdHelp;
+import not.savage.airheads.commands.subcommands.CmdReload;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -9,7 +12,8 @@ import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -17,8 +21,11 @@ import java.util.List;
  */
 public class CmdAirHeads implements CommandExecutor, TabCompleter {
 
-    // SonarLint says this was used too many times to not be a constant!
-    private static final String RELOAD_COMMAND_ALIAS = "reload";
+    final List<SubCommand> subCommands = List.of(
+            new CmdReload(),
+            new CmdCreate()
+    );
+
     private final AirHeadsPlugin plugin;
 
     public CmdAirHeads(AirHeadsPlugin plugin) {
@@ -32,20 +39,41 @@ public class CmdAirHeads implements CommandExecutor, TabCompleter {
             return false;
         }
 
-        if (strings.length > 0 && strings[0].equalsIgnoreCase(RELOAD_COMMAND_ALIAS)) {
-            final Instant start = Instant.now();
-            plugin.reloadPlugin();
-            commandSender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Reloaded in " + (Instant.now().toEpochMilli() - start.toEpochMilli()) + "ms"));
-            return true;
+        if (strings.length > 0) {
+            for (SubCommand subCommand : subCommands) {
+                if (subCommand.matches(strings[0])) {
+                    subCommand.execute(strings, commandSender, plugin);
+                    return true;
+                }
+            }
         }
-
-
-        commandSender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <red>Invalid usage! <white>Use <underlined><click:suggest_command:\"/airheads reload\">/airheads reload"));
-        return false;
+        commandSender.sendMessage(MiniMessage.miniMessage().deserialize(CmdHelp.HELP_MESSAGE));
+        return true;
     }
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String @NotNull [] strings) {
-        return List.of(RELOAD_COMMAND_ALIAS);
+        if (!commandSender.hasPermission("airheads.admin")) {
+            return null;
+        }
+
+        if (strings.length == 1) {
+            return subCommands.stream()
+                    .map(SubCommand::aliases)
+                    .map(Arrays::asList)
+                    .flatMap(Collection::stream)
+                    .toList();
+        }
+
+        if (strings.length == 2) {
+            return subCommands.stream()
+                    .map(SubCommand::aliases)
+                    .map(Arrays::asList)
+                    .flatMap(Collection::stream)
+                    .filter(alias -> alias.startsWith(strings[1]))
+                    .toList();
+        }
+
+        return null;
     }
 }

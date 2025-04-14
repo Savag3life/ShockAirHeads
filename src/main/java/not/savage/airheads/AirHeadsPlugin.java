@@ -19,13 +19,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * The main plugin class for AirHeads.
  */
 public class AirHeadsPlugin extends JavaPlugin {
 
-    private Config airHeadsConfig;
+    @Getter private Config airHeadsConfig;
     @Getter private PacketEntityCache packetEntityCache;
 
     @Override
@@ -40,7 +41,7 @@ public class AirHeadsPlugin extends JavaPlugin {
         }
 
         loadConfig();
-        getLogger().info("Loaded ShockAirHeads config from " + getDataFolder().getAbsolutePath() + "/config.yml");
+        getLogger().info("Loaded ShockAirHeads config from " + getDataFolder().getAbsolutePath() + "/airheads.yml");
 
         getLogger().info("Setting up packet based entities...");
         this.packetEntityCache = new PacketEntityCache(this);
@@ -100,6 +101,14 @@ public class AirHeadsPlugin extends JavaPlugin {
                     .withPath(new File(getDataFolder(), "airheads.yml").toPath())
                     .build();
         }
+    }
+
+    public void saveUpdates() {
+        CompletableFuture.runAsync(() -> {
+            new ConfigBuilder<>(Config.class)
+                    .withPath(new File(getDataFolder(), "airheads.yml").toPath())
+                    .save(this.airHeadsConfig);
+        });
     }
 
     /**
@@ -168,6 +177,7 @@ public class AirHeadsPlugin extends JavaPlugin {
             int x = 0;
             for (AirHead airHead : oldConfig.getAirHeads()) {
                 airHeadsConfig.getAirHeads().put("name-" + x, airHead);
+                x++;
             }
 
             new ConfigBuilder<>(Config.class)

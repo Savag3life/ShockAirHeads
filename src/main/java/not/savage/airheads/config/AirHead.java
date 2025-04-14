@@ -3,6 +3,7 @@ package not.savage.airheads.config;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -18,8 +19,13 @@ import java.util.List;
  * @see not.savage.airheads.config.AirHeadsConfig
  */
 @ConfigSerializable @Getter @Setter
+@NoArgsConstructor
 @SuppressWarnings("FieldMayBeFinal")
 public class AirHead {
+
+    public AirHead(Location location) {
+        this.location = location;
+    }
 
     @Comment("The location this head will be placed at. The location is corrected to the block center.")
     private Location location = new Location(Bukkit.getWorld("world"), 0, 0, 0);
