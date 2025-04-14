@@ -7,6 +7,7 @@ import lombok.Getter;
 import not.savage.airheads.commands.CmdAirHeads;
 import not.savage.airheads.config.AirHead;
 import not.savage.airheads.config.AirHeadsConfig;
+import not.savage.airheads.config.Config;
 import not.savage.airheads.listener.PacketInterceptListener;
 import not.savage.airheads.listener.PlayerListener;
 import not.savage.airheads.utility.ConfigBuilder;
@@ -24,7 +25,7 @@ import java.time.Instant;
  */
 public class AirHeadsPlugin extends JavaPlugin {
 
-    private AirHeadsConfig airHeadsConfig;
+    private Config airHeadsConfig;
     @Getter private PacketEntityCache packetEntityCache;
 
     @Override
@@ -85,14 +86,20 @@ public class AirHeadsPlugin extends JavaPlugin {
 
     private void loadConfig() {
         if (!getDataFolder().exists() && !getDataFolder().mkdir()) {
-                getLogger().severe("Failed to create data folder!");
-                Bukkit.getPluginManager().disablePlugin(this);
-                return;
-            }
+            getLogger().severe("Failed to create data folder!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
 
-        airHeadsConfig = new ConfigBuilder<>(AirHeadsConfig.class)
-                .withPath(new File(getDataFolder(), "config.yml").toPath())
-                .build();
+        if (new File(getDataFolder(), "config.yml").exists()) {
+            migrateConfig();
+        }
+
+        if (airHeadsConfig == null) {
+            airHeadsConfig = new ConfigBuilder<>(Config.class)
+                    .withPath(new File(getDataFolder(), "airheads.yml").toPath())
+                    .build();
+        }
     }
 
     /**
@@ -101,7 +108,7 @@ public class AirHeadsPlugin extends JavaPlugin {
     private void spawnFakeEntities() {
         final long offsetTicks = airHeadsConfig.getFloatAnimationOffsetTicks();
         long offset = offsetTicks;
-        for (AirHead airHead : airHeadsConfig.getAirHeads()) {
+        for (AirHead airHead : airHeadsConfig.getAirHeads().values()) {
             AirHeadEntity airHeadEntity = new AirHeadEntity(this, airHead, offset);
             packetEntityCache.addEntity(airHeadEntity.getEntityId(), airHeadEntity);
             offset += offsetTicks;
@@ -143,5 +150,48 @@ public class AirHeadsPlugin extends JavaPlugin {
     private void initializeHologramBridge() {
         getLogger().info("Initializing internal HologramBridge...");
         new HologramBridge(this, false);
+    }
+
+    /**
+     * Migrate the original config.yml to the new airheads.yml format.
+     * Using a map instead of list to define each airhead config section.
+     */
+    @SuppressWarnings("deprecation")
+    private void migrateConfig() {
+        getLogger().info("Found old config.yml, converting to airheads.yml");
+        this.airHeadsConfig = new Config();
+        final AirHeadsConfig oldConfig = new ConfigBuilder<>(AirHeadsConfig.class)
+                .withPath(new File(getDataFolder(), "config.yml").toPath())
+                .build();
+
+        if (!oldConfig.getAirHeads().isEmpty()) {
+            int x = 0;
+            for (AirHead airHead : oldConfig.getAirHeads()) {
+                airHeadsConfig.getAirHeads().put("name-" + x, airHead);
+            }
+
+            new ConfigBuilder<>(Config.class)
+                    .withPath(new File(getDataFolder(), "airheads.yml").toPath())
+                    .save(airHeadsConfig);
+
+            getLogger().info("Converted old config.yml to airheads.yml");
+
+            File backup = new File(getDataFolder(), "config.yml.backup");
+            if (backup.exists()) {
+                backup.delete();
+            }
+
+            if (!new File(getDataFolder(), "config.yml").renameTo(backup)) {
+                getLogger().warning("Failed to backup old config.yml");
+            } else {
+                getLogger().info("Backed up old config.yml to config.yml.backup");
+            }
+
+            if (!new File(getDataFolder(), "config.yml").delete()) {
+                getLogger().warning("Failed to delete old config.yml");
+            } else {
+                getLogger().info("Deleted old config.yml");
+            }
+        }
     }
 }

@@ -12,6 +12,7 @@ import java.util.List;
  * @see not.savage.airheads.utility.ConfigBuilder<>
  */
 @ConfigSerializable @Getter
+@Deprecated
 @SuppressWarnings("FieldMayBeFinal")
 public class AirHeadsConfig {
 
