@@ -9,8 +9,5 @@ import java.util.HashMap;
 @ConfigSerializable
 public class Config {
     private long floatAnimationOffsetTicks = 20;
-    private HashMap<String, AirHead> airHeads = new HashMap<>() {{
-        put("default", new AirHead());
-        put("default2", new AirHead());
-    }};
+    private HashMap<String, AirHead> airHeads = new HashMap<>();
 }

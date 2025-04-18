@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class CmdAirHeads implements CommandExecutor, TabCompleter {
 
-    final List<SubCommand> subCommands = List.of(
+    private final List<SubCommand> subCommands = List.of(
             new CmdReload(),
             new CmdCreate()
     );
