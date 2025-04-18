@@ -24,8 +24,7 @@ public class CmdAirHeads implements CommandExecutor, TabCompleter {
      * /airheads create <name>
      * /airheads movehere <name>
      * /airheads delete <name>
-     * /airheads list
-     * /airheads offset <name>
+     * /airheads tp <name>
      * /airheads help
      */
     private final List<SubCommand> subCommands = List.of(
