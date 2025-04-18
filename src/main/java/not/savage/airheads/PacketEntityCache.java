@@ -19,8 +19,17 @@ public class PacketEntityCache {
         entityCache.put(entityId, entity);
     }
 
-    public AirHeadEntity getEntity(int entityId) {
+    public AirHeadEntity getEntityByEntityId(int entityId) {
         return entityCache.get(entityId);
+    }
+
+    public AirHeadEntity getEntityByName(String name) {
+        for (AirHeadEntity entity : entityCache.values()) {
+            if (entity.getName().equalsIgnoreCase(name)) {
+                return entity;
+            }
+        }
+        return null;
     }
 
     public void clear() {
@@ -37,5 +46,4 @@ public class PacketEntityCache {
             }
         }
     }
-
 }

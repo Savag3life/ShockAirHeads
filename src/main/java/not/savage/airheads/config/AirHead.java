@@ -32,7 +32,7 @@ public class AirHead {
 
     @Comment("The styling and text of the hologram above the head. Supports MiniMessage <> Colors only.")
     private List<String> hologramText = List.of(
-            "<gradient:#a403ff:#d5b7fd><bold>Server Discord",
+            "<gradient:#a403ff:#d5b7fd><bold>Default Hologram",
             "<gray>supremeventures.ca/discord"
     );
 

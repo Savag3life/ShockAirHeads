@@ -29,7 +29,7 @@ public class PacketInterceptListener implements PacketListener {
         if (event.getPacketType() != PacketType.Play.Client.INTERACT_ENTITY) return;
         final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
         final int entityId = packet.getEntityId();
-        final AirHeadEntity airHead = plugin.getPacketEntityCache().getEntity(entityId);
+        final AirHeadEntity airHead = plugin.getPacketEntityCache().getEntityByEntityId(entityId);
         if (airHead != null) {
             event.setCancelled(true);
 

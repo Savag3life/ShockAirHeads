@@ -41,6 +41,7 @@ public class AirHeadEntity {
     private final AirHead config;
 
     private final int entityId;
+    private final String name;
     private final UUID uuid;
 
     @Setter private Location currentLocation;
@@ -55,13 +56,14 @@ public class AirHeadEntity {
      * @param config The AirHead configuration
      * @param delayedTicks The number of ticks to delay the AirHead from spawning.
      */
-    public AirHeadEntity(AirHeadsPlugin plugin, AirHead config, long delayedTicks) {
+    public AirHeadEntity(AirHeadsPlugin plugin, String name, AirHead config, long delayedTicks) {
         this.plugin = plugin;
         this.config = config;
         this.currentLocation = config.getLocation().clone().add(0.5, -trueHeight(), 0.5);
         this.activeAfter = System.currentTimeMillis() + (delayedTicks * 50);
 
         this.entityId = SpigotReflectionUtil.generateEntityId();
+        this.name = name;
         this.uuid = UUID.randomUUID();
 
         this.floatTask = new FloatAnimationTask(currentLocation, this, activeAfter)

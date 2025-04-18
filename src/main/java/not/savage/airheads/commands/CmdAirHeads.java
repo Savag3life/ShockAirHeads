@@ -2,9 +2,7 @@ package not.savage.airheads.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import not.savage.airheads.AirHeadsPlugin;
-import not.savage.airheads.commands.subcommands.CmdCreate;
-import not.savage.airheads.commands.subcommands.CmdHelp;
-import not.savage.airheads.commands.subcommands.CmdReload;
+import not.savage.airheads.commands.subcommands.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -21,9 +19,21 @@ import java.util.List;
  */
 public class CmdAirHeads implements CommandExecutor, TabCompleter {
 
+    /**
+     * /airheads reload
+     * /airheads create <name>
+     * /airheads movehere <name>
+     * /airheads delete <name>
+     * /airheads list
+     * /airheads offset <name>
+     * /airheads help
+     */
     private final List<SubCommand> subCommands = List.of(
             new CmdReload(),
-            new CmdCreate()
+            new CmdCreate(),
+            new CmdMove(),
+            new CmdDelete(),
+            new CmdTeleport()
     );
 
     private final AirHeadsPlugin plugin;

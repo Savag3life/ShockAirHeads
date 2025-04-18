@@ -19,6 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -117,8 +118,8 @@ public class AirHeadsPlugin extends JavaPlugin {
     private void spawnFakeEntities() {
         final long offsetTicks = airHeadsConfig.getFloatAnimationOffsetTicks();
         long offset = offsetTicks;
-        for (AirHead airHead : airHeadsConfig.getAirHeads().values()) {
-            AirHeadEntity airHeadEntity = new AirHeadEntity(this, airHead, offset);
+        for (Map.Entry<String, AirHead> airHead : airHeadsConfig.getAirHeads().entrySet()) {
+            AirHeadEntity airHeadEntity = new AirHeadEntity(this, airHead.getKey(), airHead.getValue(), offset);
             packetEntityCache.addEntity(airHeadEntity.getEntityId(), airHeadEntity);
             offset += offsetTicks;
         }

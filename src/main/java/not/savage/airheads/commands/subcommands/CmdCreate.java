@@ -9,8 +9,8 @@ import org.bukkit.entity.Player;
 
 public class CmdCreate implements SubCommand {
 
-    // /airheads <create> <name>
-    //           [0]      [1]
+    // /airheads create <name>
+    //          [0]     [1]
     @Override
     public void execute(String[] args, CommandSender sender, AirHeadsPlugin plugin) {
         if (args.length != 2) {

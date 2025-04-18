@@ -10,6 +10,9 @@ public class CmdHelp implements SubCommand {
     public static final String HELP_MESSAGE = """
             <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Help
             <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads create <name>
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads movehere <name>
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads delete <name>
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads tp <name>
             <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads reload
             """;
 
