@@ -3,6 +3,7 @@ package not.savage.airheads.utility.adapter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -24,10 +25,20 @@ public class LocationConfigAdapter implements TypeSerializer<Location> {
 
     @Override
     public Location deserialize(Type type, ConfigurationNode value) throws SerializationException {
-        final NamespacedKey worldKey = value.node(LOCATION_WORLD_NODE).get(NamespacedKey.class);
+        String worldId = value.node(LOCATION_WORLD_NODE).getString();
+        if (worldId == null) {
+            throw new SerializationException("World identifier cannot be null");
+        }
 
-        if (worldKey == null) {
-            throw new SerializationException("Invalid world key");
+        World world;
+        if (worldId.contains(":")) {
+            final NamespacedKey worldKey = value.node(LOCATION_WORLD_NODE).get(NamespacedKey.class);
+            if (worldKey == null) {
+                throw new SerializationException("Invalid world key");
+            }
+            world = Bukkit.getWorld(worldKey);
+        } else {
+            world = Bukkit.getWorld(worldId);
         }
 
         final double x = getValueIfPresent(value, LOCATION_X_POS_NODE, Double.class, 0.0D);
@@ -36,7 +47,7 @@ public class LocationConfigAdapter implements TypeSerializer<Location> {
         final float yaw = getValueIfPresent(value, LOCATION_YAW_NODE, Float.class, 0.0F);
         final float pitch = getValueIfPresent(value, LOCATION_PITCH_NODE, Float.class, 0.0F);
 
-        return new Location(Bukkit.getWorld(worldKey), x, y, z, yaw, pitch);
+        return new Location(world, x, y, z, yaw, pitch);
     }
 
     @Override
@@ -46,7 +57,7 @@ public class LocationConfigAdapter implements TypeSerializer<Location> {
             return;
         }
 
-        node.node(LOCATION_WORLD_NODE).set(obj.getWorld().getKey());
+        node.node(LOCATION_WORLD_NODE).set(obj.getWorld().getName());
         node.node(LOCATION_X_POS_NODE).set(obj.getX());
         node.node(LOCATION_Y_POS_NODE).set(obj.getY());
         node.node(LOCATION_Z_POS_NODE).set(obj.getZ());

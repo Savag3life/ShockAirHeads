@@ -26,19 +26,22 @@ import java.util.List;
  *          .setDoRotation(true)
  *          .setRotationPerTick(1)
  *          .spawn();
+ * </pre>
  *
  * All fields are populated with a default instance of {@link AirHead}
  */
 public class AirheadBuilder {
 
     private final AirHead airHead;
+    private final String name;
 
     /**
      * Creates a new AirheadBuilder instance.
      * This is the main entry point for creating AirHeads.
      */
-    public AirheadBuilder() {
+    public AirheadBuilder(String name) {
         this.airHead = new AirHead();
+        this.name = name;
     }
 
     /**
@@ -222,7 +225,7 @@ public class AirheadBuilder {
     public AirHeadEntity spawn() {
         JavaPlugin plugin = JavaPlugin.getProvidingPlugin(AirheadBuilder.class);
         if (plugin instanceof AirHeadsPlugin airheads) {
-            AirHeadEntity entity = new AirHeadEntity(airheads, airHead, 0);
+            AirHeadEntity entity = new AirHeadEntity(airheads, name, airHead, 0);
             airheads.getPacketEntityCache().addEntity(entity.getEntityId(), entity);
             return entity;
         }
