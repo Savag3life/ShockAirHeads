@@ -7,7 +7,16 @@ import not.savage.airheads.config.AirHead;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CmdMove implements SubCommand {
+
+    private final AirHeadsPlugin plugin;
+
+    public CmdMove(AirHeadsPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     // /airheads movehere <name>
     //          [0]       [1]
@@ -34,5 +43,13 @@ public class CmdMove implements SubCommand {
     @Override
     public String[] aliases() {
         return new String[] { "move", "movehere", "tphere" };
+    }
+
+    @Override
+    public List<String> onTabComplete(String[] args, CommandSender sender) {
+        if (args.length != 2) {
+            return new ArrayList<>();
+        }
+        return AIRHEADS_TAB_COMPLETER.apply(plugin, args, sender);
     }
 }

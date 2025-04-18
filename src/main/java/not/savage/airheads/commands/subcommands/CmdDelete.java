@@ -5,7 +5,16 @@ import not.savage.airheads.AirHeadsPlugin;
 import not.savage.airheads.commands.SubCommand;
 import org.bukkit.command.CommandSender;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CmdDelete implements SubCommand {
+
+    private final AirHeadsPlugin plugin;
+
+    public CmdDelete(AirHeadsPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     // /airheads delete <name>
     //          [0]       [1]
@@ -30,5 +39,13 @@ public class CmdDelete implements SubCommand {
     @Override
     public String[] aliases() {
         return new String[] { "delete", "remove" };
+    }
+
+    @Override
+    public List<String> onTabComplete(String[] args, CommandSender sender) {
+        if (args.length != 2) {
+            return new ArrayList<>();
+        }
+        return AIRHEADS_TAB_COMPLETER.apply(plugin, args, sender);
     }
 }

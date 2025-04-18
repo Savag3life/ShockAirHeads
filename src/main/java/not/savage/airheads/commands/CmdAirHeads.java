@@ -10,14 +10,18 @@ import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * The main command executor for AirHeads. /airheads reload is the only command, currently...
+ * The main command executor for AirHeads.
  */
 public class CmdAirHeads implements CommandExecutor, TabCompleter {
+
+    private final List<SubCommand> subCommands = new ArrayList<>();
+    private final AirHeadsPlugin plugin;
 
     /**
      * /airheads reload
@@ -27,18 +31,15 @@ public class CmdAirHeads implements CommandExecutor, TabCompleter {
      * /airheads tp <name>
      * /airheads help
      */
-    private final List<SubCommand> subCommands = List.of(
-            new CmdReload(),
-            new CmdCreate(),
-            new CmdMove(),
-            new CmdDelete(),
-            new CmdTeleport()
-    );
-
-    private final AirHeadsPlugin plugin;
-
     public CmdAirHeads(AirHeadsPlugin plugin) {
         this.plugin = plugin;
+         this.subCommands.addAll(Arrays.asList(
+                 new CmdReload(),
+                 new CmdCreate(),
+                 new CmdMove(plugin),
+                 new CmdDelete(plugin),
+                 new CmdTeleport(plugin)
+         ));
     }
 
     @Override
@@ -75,12 +76,11 @@ public class CmdAirHeads implements CommandExecutor, TabCompleter {
         }
 
         if (strings.length == 2) {
-            return subCommands.stream()
-                    .map(SubCommand::aliases)
-                    .map(Arrays::asList)
-                    .flatMap(Collection::stream)
-                    .filter(alias -> alias.startsWith(strings[1]))
-                    .toList();
+            for (SubCommand subCommand : subCommands) {
+                if (subCommand.matches(strings[0])) {
+                    return subCommand.onTabComplete(strings, commandSender);
+                }
+            }
         }
 
         return null;
