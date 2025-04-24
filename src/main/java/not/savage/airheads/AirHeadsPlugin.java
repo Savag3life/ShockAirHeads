@@ -97,11 +97,9 @@ public class AirHeadsPlugin extends JavaPlugin {
             migrateConfig();
         }
 
-        if (airHeadsConfig == null) {
-            airHeadsConfig = new ConfigBuilder<>(Config.class)
-                    .withPath(new File(getDataFolder(), "airheads.yml").toPath())
-                    .build();
-        }
+        airHeadsConfig = new ConfigBuilder<>(Config.class)
+                .withPath(new File(getDataFolder(), "airheads.yml").toPath())
+                .build();
     }
 
     public void saveUpdates() {
