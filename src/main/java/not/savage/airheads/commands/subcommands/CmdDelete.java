@@ -10,12 +10,6 @@ import java.util.List;
 
 public class CmdDelete implements SubCommand {
 
-    private final AirHeadsPlugin plugin;
-
-    public CmdDelete(AirHeadsPlugin plugin) {
-        this.plugin = plugin;
-    }
-
     // /airheads delete <name>
     //          [0]       [1]
     @Override
@@ -42,7 +36,7 @@ public class CmdDelete implements SubCommand {
     }
 
     @Override
-    public List<String> onTabComplete(String[] args, CommandSender sender) {
+    public List<String> onTabComplete(String[] args, CommandSender sender, AirHeadsPlugin plugin) {
         if (args.length != 2) {
             return new ArrayList<>();
         }

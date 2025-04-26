@@ -9,22 +9,27 @@ import java.util.HashMap;
 public class PacketEntityCache {
 
     private final AirHeadsPlugin plugin;
-    private final HashMap<Integer, AirHeadEntity> entityCache = new HashMap<>();
+    private final HashMap<Integer, AirHeadEntity> byEntityId = new HashMap<>();
+    private final HashMap<Integer, AirHeadEntity> byGlassOverlayId = new HashMap<>();
 
     public PacketEntityCache(AirHeadsPlugin plugin) {
         this.plugin = plugin;
     }
 
     public void addEntity(int entityId, AirHeadEntity entity) {
-        entityCache.put(entityId, entity);
+        byEntityId.put(entityId, entity);
     }
 
     public AirHeadEntity getEntityByEntityId(int entityId) {
-        return entityCache.get(entityId);
+        AirHeadEntity entity = byEntityId.get(entityId);
+        if (entity == null) {
+            entity = byGlassOverlayId.get(entityId);
+        }
+        return entity;
     }
 
     public AirHeadEntity getEntityByName(String name) {
-        for (AirHeadEntity entity : entityCache.values()) {
+        for (AirHeadEntity entity : byEntityId.values()) {
             if (entity.getName().equalsIgnoreCase(name)) {
                 return entity;
             }
@@ -33,14 +38,14 @@ public class PacketEntityCache {
     }
 
     public void clear() {
-        for (AirHeadEntity entity : entityCache.values()) {
+        for (AirHeadEntity entity : byEntityId.values()) {
             entity.remove();
         }
-        entityCache.clear();
+        byEntityId.clear();
     }
 
     public void showWorld(Player player) {
-        for (AirHeadEntity entity : entityCache.values()) {
+        for (AirHeadEntity entity : byEntityId.values()) {
             if (entity.getCurrentLocation().getWorld().getName().equals(player.getWorld().getName())) {
                 entity.spawnForPlayer(player);
             }

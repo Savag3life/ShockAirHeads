@@ -14,7 +14,7 @@ import java.lang.reflect.Type;
 /**
  * A {@link TypeSerializer} for {@link Location} objects.
  */
-public class LocationConfigAdapter implements TypeSerializer<Location> {
+public class LocationAdapter implements TypeSerializer<Location> {
 
     private final String LOCATION_WORLD_NODE = "world";
     private final String LOCATION_X_POS_NODE = "x";

@@ -11,6 +11,10 @@ import not.savage.airheads.AirHeadsPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+/**
+ * This class listens for packet events and handles interactions with air heads.
+ * It is responsible for executing commands and sending messages when a player interacts with an air head.
+ */
 public class PacketInterceptListener implements PacketListener {
 
     private final AirHeadsPlugin plugin;

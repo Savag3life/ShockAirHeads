@@ -12,12 +12,6 @@ import java.util.List;
 
 public class CmdMove implements SubCommand {
 
-    private final AirHeadsPlugin plugin;
-
-    public CmdMove(AirHeadsPlugin plugin) {
-        this.plugin = plugin;
-    }
-
     // /airheads movehere <name>
     //          [0]       [1]
     @Override
@@ -46,7 +40,7 @@ public class CmdMove implements SubCommand {
     }
 
     @Override
-    public List<String> onTabComplete(String[] args, CommandSender sender) {
+    public List<String> onTabComplete(String[] args, CommandSender sender, AirHeadsPlugin plugin) {
         if (args.length != 2) {
             return new ArrayList<>();
         }

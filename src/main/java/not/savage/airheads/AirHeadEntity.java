@@ -41,11 +41,14 @@ public class AirHeadEntity {
     private final AirHead config;
 
     private final int entityId;
+    private final UUID entityUuid;
+    private final int glassEntityId;
+    private final UUID glassEntityUuid;
     private final String name;
-    private final UUID uuid;
 
     @Setter private Location currentLocation;
-    @Getter private final ItemStack headItem;
+    private final ItemStack headItem;
+    private final ItemStack glassItem;
     private final int floatTask;
     private final Hologram hologram;
     private final long activeAfter;
@@ -63,8 +66,10 @@ public class AirHeadEntity {
         this.activeAfter = System.currentTimeMillis() + (delayedTicks * 50);
 
         this.entityId = SpigotReflectionUtil.generateEntityId();
+        this.entityUuid = UUID.randomUUID();
+        this.glassEntityId = SpigotReflectionUtil.generateEntityId();
+        this.glassEntityUuid = UUID.randomUUID();
         this.name = name;
-        this.uuid = UUID.randomUUID();
 
         this.floatTask = new FloatAnimationTask(currentLocation, this, activeAfter)
                 .runTaskTimerAsynchronously(JavaPlugin.getProvidingPlugin(getClass()), 0, 1)
@@ -85,16 +90,22 @@ public class AirHeadEntity {
         Heads.setBase64ToSkullMeta(config.getHeadTexture(), meta);
         head.setItemMeta(meta);
         this.headItem = SpigotConversionUtil.fromBukkitItemStack(head);
+
+        if (!config.getOverlayMaterial().isAir()) {
+            this.glassItem = SpigotConversionUtil.fromBukkitItemStack(new org.bukkit.inventory.ItemStack(config.getOverlayMaterial(), 1));
+        } else {
+            this.glassItem = null;
+        }
     }
 
     public void spawnForPlayer(Player player) {
         // Spawn the entity.
         CompletableFuture.runAsync(() -> {
             final WrapperPlayServerSpawnEntity entitySpawnPacket = new WrapperPlayServerSpawnEntity(
-                    this.entityId,
-                    this.uuid,
+                    entityId,
+                    entityUuid,
                     SpigotConversionUtil.fromBukkitEntityType(EntityType.ARMOR_STAND),
-                    SpigotConversionUtil.fromBukkitLocation(this.currentLocation),
+                    SpigotConversionUtil.fromBukkitLocation(currentLocation),
                     0.0F,
                     0,
                     null
@@ -102,7 +113,7 @@ public class AirHeadEntity {
 
             // Dress the entity
             final WrapperPlayServerEntityEquipment entityEquipPacket = new WrapperPlayServerEntityEquipment(
-                    this.entityId,
+                    entityId,
                     List.of(new Equipment(
                             com.github.retrooper.packetevents.protocol.player.EquipmentSlot.HELMET,
                             headItem
@@ -111,7 +122,7 @@ public class AirHeadEntity {
 
             // Protect the entity
             final WrapperPlayServerEntityMetadata entityMetaPacket = new WrapperPlayServerEntityMetadata(
-                    this.entityId,
+                    entityId,
                     List.of(
                             new EntityData( // Invisible
                                     0,
@@ -125,10 +136,56 @@ public class AirHeadEntity {
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, entityEquipPacket);
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, entityMetaPacket);
 
+
+            if (glassItem != null) {
+                final WrapperPlayServerSpawnEntity glassSpawnPacket = new WrapperPlayServerSpawnEntity(
+                        glassEntityId,
+                        glassEntityUuid,
+                        SpigotConversionUtil.fromBukkitEntityType(EntityType.ARMOR_STAND),
+                        SpigotConversionUtil.fromBukkitLocation(currentLocation.clone().add(0, -config.getOverlayOffset(), 0)),
+                        0.0F,
+                        0,
+                        null
+                );
+
+                // Dress the entity
+                final WrapperPlayServerEntityEquipment glassEquipPacket = new WrapperPlayServerEntityEquipment(
+                        glassEntityId,
+                        List.of(new Equipment(
+                                com.github.retrooper.packetevents.protocol.player.EquipmentSlot.HELMET,
+                                glassItem
+                        ))
+                );
+
+                // Protect the entity
+                final WrapperPlayServerEntityMetadata glassMetaPacket = new WrapperPlayServerEntityMetadata(
+                        glassEntityId,
+                        List.of(
+                                new EntityData( // Invisible
+                                        0,
+                                        EntityDataTypes.BYTE,
+                                        (byte) 0x20
+                                )
+                        )
+                );
+
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassSpawnPacket);
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassEquipPacket);
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassMetaPacket);
+            }
+
             if (config.getScale() != 1.0) {
                 // We only need to send an Attribute packet if the scale is not 1.0 (None-Default)
-                WrapperPlayServerUpdateAttributes entityAttributes = createAttributePacket();
+                final WrapperPlayServerUpdateAttributes entityAttributes = createAttributePacket(entityId, config.getScale());
                 PacketEvents.getAPI().getPlayerManager().sendPacket(player, entityAttributes);
+
+                if (!config.getOverlayMaterial().isEmpty() && !config.getOverlayMaterial().equals("AIR")) {
+                    final WrapperPlayServerUpdateAttributes glassAttributes = createAttributePacket(glassEntityId, config.getScale() + 0.3);
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassAttributes);
+                }
+            } else if (glassItem != null) {
+                final WrapperPlayServerUpdateAttributes glassAttributes = createAttributePacket(glassEntityId, 1.3);
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassAttributes);
             }
 
         }).thenAcceptAsync(v -> {
@@ -136,30 +193,42 @@ public class AirHeadEntity {
             // not sure of the behavior when entities are modified before the client knows they exist.
             // May be something to address later in a PR
         });
-        this.hologram.getVisibilityManager().showTo(player);
+
+        hologram.getVisibilityManager().showTo(player);
     }
 
-    private @NotNull WrapperPlayServerUpdateAttributes createAttributePacket() {
-        final WrapperPlayServerUpdateAttributes.Property scale = new WrapperPlayServerUpdateAttributes.Property(
+    private @NotNull WrapperPlayServerUpdateAttributes createAttributePacket(int entity, double scale) {
+        final WrapperPlayServerUpdateAttributes.Property scalePacket = new WrapperPlayServerUpdateAttributes.Property(
                 Attributes.SCALE,
-                config.getScale(),
+                scale,
                 new ArrayList<>()
         );
 
         final WrapperPlayServerUpdateAttributes.Property interactionRange = new WrapperPlayServerUpdateAttributes.Property(
                 Attributes.ENTITY_INTERACTION_RANGE,
-                config.getScale(),
+                scale,
                 new ArrayList<>()
         );
 
-        return new WrapperPlayServerUpdateAttributes(getEntityId(), List.of(scale, interactionRange));
+        return new WrapperPlayServerUpdateAttributes(entity, List.of(scalePacket, interactionRange));
     }
 
     public void teleport(Location location) {
-        final WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(getEntityId(), SpigotConversionUtil.fromBukkitLocation(location), false);
         CompletableFuture.runAsync(() -> {
-            getCurrentLocation().getWorld().getPlayers().forEach(player -> PacketEvents.getAPI().getPlayerManager().sendPacket(player, teleportPacket));
+            final WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(entityId, SpigotConversionUtil.fromBukkitLocation(location), false);
+            if (glassItem != null) {
+                final WrapperPlayServerEntityTeleport glassTeleportPacket = new WrapperPlayServerEntityTeleport(glassEntityId, SpigotConversionUtil.fromBukkitLocation(location.clone().add(0, -config.getOverlayOffset(), 0)), false);
+                getCurrentLocation().getWorld().getPlayers().forEach(player -> {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, teleportPacket);
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassTeleportPacket);
+                });
+            } else {
+                getCurrentLocation().getWorld().getPlayers().forEach(player -> {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, teleportPacket);
+                });
+            }
         });
+
         setCurrentLocation(location);
 
         if (getHologram() != null)
@@ -174,12 +243,23 @@ public class AirHeadEntity {
             Bukkit.getScheduler().cancelTask(floatTask);
         }
 
-        final WrapperPlayServerDestroyEntities destroyPacket = new WrapperPlayServerDestroyEntities(getEntityId());
-        currentLocation.getWorld().getPlayers().forEach(player -> {
-            if (player.isOnline()) {
-                PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
-            }
-        });
+        final WrapperPlayServerDestroyEntities destroyPacket = new WrapperPlayServerDestroyEntities(entityId);
+
+        if (glassItem != null) {
+            final WrapperPlayServerDestroyEntities destroyGlassPacket = new WrapperPlayServerDestroyEntities(glassEntityId);
+            getCurrentLocation().getWorld().getPlayers().forEach(player -> {
+                if (player.isOnline()) {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyGlassPacket);
+                }
+            });
+        } else {
+            currentLocation.getWorld().getPlayers().forEach(player -> {
+                if (player.isOnline()) {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
+                }
+            });
+        }
 
         if (hologram != null) {
             hologram.delete();

@@ -7,6 +7,10 @@ import org.bukkit.command.CommandSender;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Interface representing a subcommand in the AirHeads plugin.
+ * Each subcommand should implement this interface to define its behavior.
+ */
 public interface SubCommand {
 
     /**
@@ -59,7 +63,7 @@ public interface SubCommand {
      * @param sender The sender of the command
      * @return A list of tab-completion suggestions
      */
-    default List<String> onTabComplete(String[] args, CommandSender sender) {
+    default List<String> onTabComplete(String[] args, CommandSender sender, AirHeadsPlugin plugin) {
         return List.of();
     }
 

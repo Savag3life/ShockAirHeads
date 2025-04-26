@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -16,7 +17,6 @@ import java.util.List;
 
 /**
  * The config settings for an individual AirHead.
- * @see not.savage.airheads.config.AirHeadsConfig
  */
 @ConfigSerializable @Getter @Setter
 @NoArgsConstructor
@@ -80,4 +80,10 @@ public class AirHead {
 
     @Comment("Change the scale of the airhead entity. Larger Number = Bigger")
     private double scale = 1.0;
+
+    @Comment("The material to overlay the head with, like glass or ice. AIR = No Overlay")
+    private Material overlayMaterial = Material.AIR;
+
+    @Comment("The scale offset of the overlay material. Larger number = larger overlay")
+    private double overlayOffset = 0.45;
 }

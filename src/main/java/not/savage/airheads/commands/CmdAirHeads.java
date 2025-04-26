@@ -17,28 +17,22 @@ import java.util.List;
 
 /**
  * The main command executor for AirHeads.
+ * Handles /airheads root command and subcommands.
+ * Also manages tab completions for commands and arguments.
  */
-public class CmdAirHeads implements CommandExecutor, TabCompleter {
+public final class CmdAirHeads implements CommandExecutor, TabCompleter {
 
     private final List<SubCommand> subCommands = new ArrayList<>();
     private final AirHeadsPlugin plugin;
 
-    /**
-     * /airheads reload
-     * /airheads create <name>
-     * /airheads movehere <name>
-     * /airheads delete <name>
-     * /airheads tp <name>
-     * /airheads help
-     */
     public CmdAirHeads(AirHeadsPlugin plugin) {
         this.plugin = plugin;
          this.subCommands.addAll(Arrays.asList(
                  new CmdReload(),
                  new CmdCreate(),
-                 new CmdMove(plugin),
-                 new CmdDelete(plugin),
-                 new CmdTeleport(plugin)
+                 new CmdMove(),
+                 new CmdDelete(),
+                 new CmdTeleport()
          ));
     }
 
@@ -78,7 +72,7 @@ public class CmdAirHeads implements CommandExecutor, TabCompleter {
         if (strings.length == 2) {
             for (SubCommand subCommand : subCommands) {
                 if (subCommand.matches(strings[0])) {
-                    return subCommand.onTabComplete(strings, commandSender);
+                    return subCommand.onTabComplete(strings, commandSender, plugin);
                 }
             }
         }
