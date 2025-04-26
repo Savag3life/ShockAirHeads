@@ -2,6 +2,7 @@ package not.savage.airheads;
 
 import not.savage.airheads.config.AirHead;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -215,6 +216,26 @@ public class AirheadBuilder {
      */
     public AirheadBuilder setScale(final double scale) {
         airHead.setScale(scale);
+        return this;
+    }
+
+    /**
+     * Sets the overlay material for the airhead. If AIR, the overlay will be removed.
+     * @param material The material to use as the overlay.
+     * @return The current instance of the builder for chaining.
+     */
+    public AirheadBuilder setOverlayMaterial(Material material) {
+        airHead.setOverlayMaterial(material);
+        return this;
+    }
+
+    /**
+     * Sets the overlay offset for the airhead. This is the offset of the overlay around the head.
+     * @param offset The offset of the overlay. Larger number = higher. negative number = below the head.
+     * @return The current instance of the builder for chaining.
+     */
+    public AirheadBuilder setOverlayOffset(double offset) {
+        airHead.setOverlayOffset(offset);
         return this;
     }
 
