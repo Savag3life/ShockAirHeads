@@ -2,6 +2,7 @@ package not.savage.airheads;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import gg.optimalgames.hologrambridge.HologramAPI;
 import gg.optimalgames.hologrambridge.HologramBridge;
 import lombok.Getter;
 import not.savage.airheads.commands.CmdAirHeads;
@@ -158,6 +159,11 @@ public class AirHeadsPlugin extends JavaPlugin {
     private void initializeHologramBridge() {
         getLogger().info("Initializing internal HologramBridge...");
         new HologramBridge(this, false);
+        if (!HologramAPI.hasConnector()) {
+            getLogger().warning("HologramBridge couldn't find a supported Hologram plugin!");
+        } else {
+            getLogger().info("HologramBridge initialized!");
+        }
     }
 
     /**
