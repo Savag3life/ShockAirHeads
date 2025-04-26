@@ -9,6 +9,7 @@ A simple but more creative solution to the typical need for an NPC/Citizen. Inst
 - [Hologram Bridge Support](https://github.com/Chubbyduck1/HologramBridge) - Use Holograms, HolographicDisplays, CMI, or DecentHolograms.
 - Scale heads up to 10x normal size, and down to 5% of normal size.
 - Sends messages, play sounds, dispatch console commands or execute commands as the player.
+- Add block-overlays to the AirHead, to add another layer of depth to your AirHeads.
 - Does __not require__ [SVCommonsLib](https://supremeventures.ca/discord)! But you should still check us out :p
 
 ![airheads](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/animation.gif)
@@ -91,4 +92,10 @@ air-heads:
     do-rotation: true
     rotation-per-tick: 5
     scale: 4.0
+    overlay-material: AIR
+    overlay-offset: 0.45
+    left-click-commands: []
+    right-click-commands: []
+    left-click-console-commands: []
+    right-click-console-commands: []
 ```
