@@ -85,11 +85,15 @@ public class AirHeadEntity {
             this.hologram = null;
         }
 
-        final org.bukkit.inventory.ItemStack head = new org.bukkit.inventory.ItemStack(Material.PLAYER_HEAD, 1);
-        final SkullMeta meta = (SkullMeta) head.getItemMeta();
-        Heads.setBase64ToSkullMeta(config.getHeadTexture(), meta);
-        head.setItemMeta(meta);
-        this.headItem = SpigotConversionUtil.fromBukkitItemStack(head);
+        if (!config.getHeadTexture().equals("%player%")) {
+            final org.bukkit.inventory.ItemStack head = new org.bukkit.inventory.ItemStack(Material.PLAYER_HEAD, 1);
+            final SkullMeta meta = (SkullMeta) head.getItemMeta();
+            Heads.setBase64ToSkullMeta(config.getHeadTexture(), meta);
+            head.setItemMeta(meta);
+            this.headItem = SpigotConversionUtil.fromBukkitItemStack(head);
+        } else {
+            this.headItem = null;
+        }
 
         if (!config.getOverlayMaterial().isAir()) {
             this.glassItem = SpigotConversionUtil.fromBukkitItemStack(new org.bukkit.inventory.ItemStack(config.getOverlayMaterial(), 1));
@@ -111,14 +115,31 @@ public class AirHeadEntity {
                     null
             );
 
-            // Dress the entity
-            final WrapperPlayServerEntityEquipment entityEquipPacket = new WrapperPlayServerEntityEquipment(
-                    entityId,
-                    List.of(new Equipment(
-                            com.github.retrooper.packetevents.protocol.player.EquipmentSlot.HELMET,
-                            headItem
-                    ))
-            );
+            WrapperPlayServerEntityEquipment entityEquipPacket
+            if (headItem == null) {
+                // Reflection of players skins.
+                final org.bukkit.inventory.ItemStack head = new org.bukkit.inventory.ItemStack(Material.PLAYER_HEAD, 1);
+                final SkullMeta meta = (SkullMeta) head.getItemMeta();
+                Heads.setReflectionSkin(player, meta);
+                head.setItemMeta(meta);
+                // Dress the entity
+                entityEquipPacket = new WrapperPlayServerEntityEquipment(
+                        entityId,
+                        List.of(new Equipment(
+                                com.github.retrooper.packetevents.protocol.player.EquipmentSlot.HELMET,
+                                SpigotConversionUtil.fromBukkitItemStack(head)
+                        ))
+                );
+            } else {
+                // Dress the entity
+                entityEquipPacket = new WrapperPlayServerEntityEquipment(
+                        entityId,
+                        List.of(new Equipment(
+                                com.github.retrooper.packetevents.protocol.player.EquipmentSlot.HELMET,
+                                headItem
+                        ))
+                );
+            }
 
             // Protect the entity
             final WrapperPlayServerEntityMetadata entityMetaPacket = new WrapperPlayServerEntityMetadata(

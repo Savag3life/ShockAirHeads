@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerTextures;
 
@@ -32,7 +33,12 @@ public class Heads {
      */
     public static void setBase64ToSkullMeta(String base64, SkullMeta meta) {
         PlayerProfile profile = getProfileBase64(base64);
-        meta.setOwnerProfile(profile);
+        meta.setPlayerProfile(profile);
+    }
+
+    public static void setReflectionSkin(Player player, SkullMeta meta) {
+        PlayerProfile profile = player.getPlayerProfile();
+        meta.setPlayerProfile(profile);
     }
 
     private static PlayerProfile getProfileBase64(String base64) {
