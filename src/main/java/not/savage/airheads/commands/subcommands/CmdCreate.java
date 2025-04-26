@@ -24,7 +24,7 @@ public class CmdCreate implements SubCommand {
         } else {
             plugin.getAirHeadsConfig().getAirHeads().put(name, new AirHead(((Player) sender).getLocation()));
             plugin.saveUpdates();
-            plugin.reloadPlugin();
+            plugin.reloadPlugin(false);
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Created AirHead " + name));
         }
     }

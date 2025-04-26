@@ -66,9 +66,9 @@ public class AirHeadsPlugin extends JavaPlugin {
     /**
      * Reload the config & respawn airheads.
      */
-    public void reloadPlugin() {
+    public void reloadPlugin(boolean reloadConfig) {
         getLogger().info("Reloading ShockAirHeads Plugin!");
-        loadConfig();
+        if (reloadConfig) loadConfig();
         packetEntityCache.clear();
         spawnFakeEntities();
         Bukkit.getOnlinePlayers().forEach(player -> packetEntityCache.showWorld(player));

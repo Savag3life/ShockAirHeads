@@ -29,7 +29,7 @@ public class CmdTeleport implements SubCommand {
             airHead.setLocation(((Player) sender).getLocation());
             plugin.getAirHeadsConfig().getAirHeads().put(name, airHead);
             plugin.saveUpdates();
-            plugin.reloadPlugin();
+            plugin.reloadPlugin(false);
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Moved AirHead " + name + " to your location!"));
         }
     }

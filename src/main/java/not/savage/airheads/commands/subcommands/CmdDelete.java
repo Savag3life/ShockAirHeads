@@ -25,7 +25,7 @@ public class CmdDelete implements SubCommand {
         } else {
             plugin.getAirHeadsConfig().getAirHeads().remove(args[1]);
             plugin.saveUpdates();
-            plugin.reloadPlugin();
+            plugin.reloadPlugin(false);
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Deleted AirHead " + name + "!"));
         }
     }
