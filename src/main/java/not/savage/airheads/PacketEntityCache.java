@@ -18,6 +18,9 @@ public class PacketEntityCache {
 
     public void addEntity(int entityId, AirHeadEntity entity) {
         byEntityId.put(entityId, entity);
+        if (entity.getGlassItem() != null) {
+            byGlassOverlayId.put(entity.getGlassEntityId(), entity);
+        }
     }
 
     public AirHeadEntity getEntityByEntityId(int entityId) {

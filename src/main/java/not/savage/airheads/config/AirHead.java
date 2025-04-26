@@ -45,8 +45,20 @@ public class AirHead {
     @Comment("Commands to execute when head is interacted with. Executed as the integrating player.")
     private List<String> interactCommands = List.of("discord");
 
+    @Comment("Commands which are only executed if the interaction is a left click.")
+    private List<String> leftClickCommands = new ArrayList<>();
+
+    @Comment("Commands which are only executed if the interaction is a right click.")
+    private List<String> rightClickCommands = new ArrayList<>();
+
     @Comment("Commands to execute when head is interacted with. Executed as console sender.")
     private List<String> consoleCommands = new ArrayList<>();
+
+    @Comment("Commands which are only executed if the interaction is a left click. Executed as console sender.")
+    private List<String> leftClickConsoleCommands = new ArrayList<>();
+
+    @Comment("Commands which are only executed if the interaction is a right click. Executed as console sender.")
+    private List<String> rightClickConsoleCommands = new ArrayList<>();
 
     @Comment("Message to send when interacted with. Supports mini-message.")
     private List<String> interactMessage = new ArrayList<>();

@@ -43,8 +43,47 @@ public class PacketInterceptListener implements PacketListener {
                 airHead.getConfig()
                         .getInteractCommands()
                         .forEach(
-                                cmd -> Bukkit.dispatchCommand(event.getPlayer(), cmd)
+                                cmd -> Bukkit.dispatchCommand(player, cmd)
                         );
+
+                // Left-Click Interaction
+                if (packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+                    airHead.getConfig()
+                            .getLeftClickCommands()
+                            .forEach(cmd -> Bukkit.dispatchCommand(
+                                            player,
+                                            cmd.replace("%player%", player.getName())
+                                    )
+                            );
+
+                    airHead.getConfig()
+                            .getLeftClickConsoleCommands()
+                            .forEach(cmd -> Bukkit.dispatchCommand(
+                                            Bukkit.getConsoleSender(),
+                                            cmd.replace("%player%", player.getName())
+                                    )
+                            );
+                }
+
+                // Right-Click Interaction
+                if (packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.INTERACT ||
+                        packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.INTERACT_AT) {
+                    airHead.getConfig()
+                            .getRightClickCommands()
+                            .forEach(cmd -> Bukkit.dispatchCommand(
+                                            player,
+                                            cmd.replace("%player%", player.getName())
+                                    )
+                            );
+
+                    airHead.getConfig()
+                            .getRightClickConsoleCommands()
+                            .forEach(cmd -> Bukkit.dispatchCommand(
+                                            Bukkit.getConsoleSender(),
+                                            cmd.replace("%player%", player.getName())
+                                    )
+                            );
+                }
 
                 airHead.getConfig()
                         .getConsoleCommands()
@@ -53,6 +92,8 @@ public class PacketInterceptListener implements PacketListener {
                                         cmd.replace("%player%", player.getName())
                                 )
                         );
+
+
 
                 if (!airHead.getConfig().getInteractMessage().isEmpty()) {
                     airHead.getConfig().getInteractMessage()
