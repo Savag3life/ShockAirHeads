@@ -115,7 +115,7 @@ public class AirHeadEntity {
                     null
             );
 
-            WrapperPlayServerEntityEquipment entityEquipPacket
+            WrapperPlayServerEntityEquipment entityEquipPacket;
             if (headItem == null) {
                 // Reflection of players skins.
                 final org.bukkit.inventory.ItemStack head = new org.bukkit.inventory.ItemStack(Material.PLAYER_HEAD, 1);
