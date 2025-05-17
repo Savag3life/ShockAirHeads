@@ -2,6 +2,7 @@ package not.savage.airheads;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import lombok.Getter;
 import lombok.NonNull;
 import not.savage.airheads.commands.CmdAirHeads;
@@ -34,6 +35,19 @@ public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
     @Getter private PacketEntityCache packetEntityCache;
 
     @Override
+    public void onLoad() {
+        getLogger().info("Initializing ShockAirHeads Plugin!");
+        try {
+            Class.forName("not.savage.airheads.shade.com.github.retrooper.packetevents.PacketEventsAPI");
+            getLogger().info("Using shaded PacketEvents.");
+            PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+            PacketEvents.getAPI().load();
+        } catch (ClassNotFoundException ignored) {
+            getLogger().info("Using non-shaded PacketEvents (server dependency).");
+        }
+    }
+
+    @Override
     public void onEnable() {
         final Instant start = Instant.now();
         getLogger().info("Loading ShockAirHeads Plugin!");
@@ -41,10 +55,13 @@ public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
         loadConfig();
         getLogger().info("Loaded ShockAirHeads config from " + getDataFolder().getAbsolutePath() + "/" + CONFIG_FILE_NAME);
 
+        getLogger().info("Initializing PacketEvents...");
+        PacketEvents.getAPI().init();
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketInterceptListener(this), PacketListenerPriority.NORMAL);
+
         getLogger().info("Setting up packet based entities...");
         this.packetEntityCache = new PacketEntityCache(this);
 
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketInterceptListener(this), PacketListenerPriority.NORMAL);
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         spawnFakeEntities();
 
@@ -58,6 +75,7 @@ public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
     public void onDisable() {
         getLogger().info("Shutting down Shock ShockAirHeads Plugin!");
         getPacketEntityCache().clear();
+        PacketEvents.getAPI().terminate();
     }
 
     /**

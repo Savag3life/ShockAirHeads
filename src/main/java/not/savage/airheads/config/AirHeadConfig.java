@@ -30,6 +30,7 @@ public class AirHeadConfig {
      */
     public AirHeadConfig(final AirHead oldConfig) {
         this.location = oldConfig.getLocation();
+
         this.interactSettings.interactCommands = oldConfig.getInteractCommands();
         this.interactSettings.leftClickCommands = oldConfig.getLeftClickCommands();
         this.interactSettings.rightClickCommands = oldConfig.getRightClickCommands();
@@ -43,7 +44,7 @@ public class AirHeadConfig {
         this.interactSettings.soundSettings.sound = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(oldConfig.getSoundSettings().getSound().key());
 
         this.hologramTextDisplaySettings.setHologramText(oldConfig.getHologramText());
-        this.hologramTextDisplaySettings.setHologramOffset(oldConfig.getHologramOffset());
+        this.hologramTextDisplaySettings.setHologramOffset(oldConfig.getHologramText().size() * 0.25);
 
         this.animationSettings.doFloat = oldConfig.isDoFloat();
         this.animationSettings.floatUpMax = oldConfig.getFloatUpMax();
@@ -51,6 +52,11 @@ public class AirHeadConfig {
         this.animationSettings.floatCycleDurationTicks = oldConfig.getFloatCycleDurationTicks();
         this.animationSettings.doRotation = oldConfig.isDoRotation();
         this.animationSettings.rotationPerTick = oldConfig.getRotationPerTick();
+
+        if (this.animationSettings.doRotation) {
+            this.location.setPitch(0.0F);
+            this.location.setYaw(0.0F);
+        }
 
         this.appearanceSettings.headTexture = oldConfig.getHeadTexture();
         this.appearanceSettings.scale = oldConfig.getScale();

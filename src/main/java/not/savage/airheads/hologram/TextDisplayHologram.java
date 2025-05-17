@@ -19,7 +19,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,9 +86,9 @@ public class TextDisplayHologram {
         this.plugin = plugin;
         this.world = world;
 
-        this.interpolationDelay = config.getUpdateIntervalTicks();
-        this.positionInterpolationDelay = config.getUpdateIntervalTicks();
-        this.transformationInterpolationDelay = config.getUpdateIntervalTicks();
+        this.interpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
+        this.positionInterpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
+        this.transformationInterpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
 
         this.transformation = new Vector3f(config.getTranslationX(), config.getTranslationY(), config.getTranslationZ());
         this.scale = new Vector3f(config.getScaleX(), config.getScaleY(), config.getScaleZ());
@@ -147,44 +146,45 @@ public class TextDisplayHologram {
         return new WrapperPlayServerEntityMetadata(entityId, packDirty(player));
     }
 
-    private List<EntityData> packDirty(final Player player) {
-        final List<EntityData> data = new ArrayList<>();
+    private List<EntityData<?>> packDirty(final Player player) {
+        final List<EntityData<?>> data = new ArrayList<>();
 
         // DisplayEntity Fields
-        data.add(new EntityData(8, EntityDataTypes.INT, interpolationDelay));
-        data.add(new EntityData(9, EntityDataTypes.INT, transformationInterpolationDelay));
-        data.add(new EntityData(10, EntityDataTypes.INT, positionInterpolationDelay));
-        data.add(new EntityData(11, EntityDataTypes.VECTOR3F, transformation));
-        data.add(new EntityData(12, EntityDataTypes.VECTOR3F, scale));
-        data.add(new EntityData(13, EntityDataTypes.QUATERNION, rotationLeft));
-        data.add(new EntityData(14, EntityDataTypes.QUATERNION, rotationRight));
-        data.add(new EntityData(15, EntityDataTypes.BYTE, billboardConstraints));
-        data.add(new EntityData(16, EntityDataTypes.INT, brightnessOverride));
-        data.add(new EntityData(17, EntityDataTypes.FLOAT, viewRange));
-        data.add(new EntityData(18, EntityDataTypes.FLOAT, shadowRadius));
-        data.add(new EntityData(19, EntityDataTypes.FLOAT, shadowStrength));
-        data.add(new EntityData(20, EntityDataTypes.FLOAT, width));
-        data.add(new EntityData(21, EntityDataTypes.FLOAT, height));
-        data.add(new EntityData(22, EntityDataTypes.INT, glowOverride));
+        data.add(new EntityData<>(8, EntityDataTypes.INT, interpolationDelay));
+        data.add(new EntityData<>(9, EntityDataTypes.INT, transformationInterpolationDelay));
+        data.add(new EntityData<>(10, EntityDataTypes.INT, positionInterpolationDelay));
+        data.add(new EntityData<>(11, EntityDataTypes.VECTOR3F, transformation));
+        data.add(new EntityData<>(12, EntityDataTypes.VECTOR3F, scale));
+        data.add(new EntityData<>(13, EntityDataTypes.QUATERNION, rotationLeft));
+        data.add(new EntityData<>(14, EntityDataTypes.QUATERNION, rotationRight));
+        data.add(new EntityData<>(15, EntityDataTypes.BYTE, billboardConstraints));
+        data.add(new EntityData<>(16, EntityDataTypes.INT, brightnessOverride));
+        data.add(new EntityData<>(17, EntityDataTypes.FLOAT, viewRange));
+        data.add(new EntityData<>(18, EntityDataTypes.FLOAT, shadowRadius));
+        data.add(new EntityData<>(19, EntityDataTypes.FLOAT, shadowStrength));
+        data.add(new EntityData<>(20, EntityDataTypes.FLOAT, width));
+        data.add(new EntityData<>(21, EntityDataTypes.FLOAT, height));
+        data.add(new EntityData<>(22, EntityDataTypes.INT, glowOverride));
 
         // TextDisplay Fields
         final List<String> playerView = new ArrayList<>(PlaceholderAPI.setPlaceholders(player, text));
         data.add(
-                new EntityData(
+                new EntityData<>(
                         23,
                         EntityDataTypes.ADV_COMPONENT,
                         MiniMessage.miniMessage().deserialize(String.join("\n", playerView))
                 )
         );
-        data.add(new EntityData(24, EntityDataTypes.INT, lineWidth));
-        data.add(new EntityData(25, EntityDataTypes.INT, backgroundColor));
-        data.add(new EntityData(26, EntityDataTypes.BYTE, textOpacity));
-        data.add(new EntityData(27, EntityDataTypes.BYTE, meta));
+        data.add(new EntityData<>(24, EntityDataTypes.INT, lineWidth));
+        data.add(new EntityData<>(25, EntityDataTypes.INT, backgroundColor));
+        data.add(new EntityData<>(26, EntityDataTypes.BYTE, textOpacity));
+        data.add(new EntityData<>(27, EntityDataTypes.BYTE, meta));
 
         return data;
     }
 
     public void spawn(final Player player, final Location location) {
+        location.add(0, getOffset(), 0);
         location.setPitch(pitch);
         location.setYaw(pitch);
         CompletableFuture.runAsync(() -> {
@@ -211,6 +211,8 @@ public class TextDisplayHologram {
     }
 
     public void teleport(final Location location) {
+        if (!location.getWorld().getName().equals(getWorld().getName()))
+            throw new IllegalStateException("Cannot teleport to a different world!");
         location.add(0, getOffset(), 0);
         location.setPitch(pitch);
         location.setYaw(yaw);

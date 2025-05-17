@@ -66,8 +66,10 @@ public class AirHeadEntity {
 
         this.entityId = SpigotReflectionUtil.generateEntityId();
         this.entityUuid = UUID.randomUUID();
+
         this.glassEntityId = SpigotReflectionUtil.generateEntityId();
         this.glassEntityUuid = UUID.randomUUID();
+
         this.name = name;
 
         this.floatTask = new FloatAnimationTask(currentLocation, this, activeAfter)
@@ -136,7 +138,7 @@ public class AirHeadEntity {
             final WrapperPlayServerEntityMetadata entityMetaPacket = new WrapperPlayServerEntityMetadata(
                     entityId,
                     List.of(
-                            new EntityData( // Invisible
+                            new EntityData<>( // Invisible
                                     0,
                                     EntityDataTypes.BYTE,
                                     (byte) 0x20
@@ -252,21 +254,22 @@ public class AirHeadEntity {
      * Remove all the AirHead components from the world.
      */
     public void remove() {
-        if (floatTask != -1) {
+        if (floatTask != -1)
             Bukkit.getScheduler().cancelTask(floatTask);
-        }
+
         final int[] entitiesToRemove = new int[glassItem != null ? 3 : 2];
         entitiesToRemove[0] = entityId;
         entitiesToRemove[1] = textDisplay.getEntityId();
-        if (glassItem != null) {
+        if (glassItem != null)
             entitiesToRemove[2] = glassEntityId;
-        }
-        textDisplay.getHologramUpdateTask().cancel();
+
+        if (textDisplay.getHologramUpdateTask() != null)
+            textDisplay.getHologramUpdateTask().cancel();
+
         final WrapperPlayServerDestroyEntities destroyPacket = new WrapperPlayServerDestroyEntities(entitiesToRemove);
         getCurrentLocation().getWorld().getPlayers().forEach(player -> {
-            if (player.isOnline()) {
+            if (player.isOnline())
                 PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
-            }
         });
     }
 

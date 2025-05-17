@@ -164,3 +164,8 @@ public AirheadApiExample(final JavaPlugin myCustomPlugin) {
     }
 }
 ```
+## Credits
+- [Packet Events](https://github.com/retrooper/packetevents)
+- [Minecraft Protocol](https://minecraft.wiki/w/Java_Edition_protocol/)
+- [Adventure](https://github.com/KyoriPowered/adventure)
+- [Configurate](https://github.com/SpongePowered/Configurate)

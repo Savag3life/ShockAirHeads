@@ -19,7 +19,7 @@ public class PacketInterceptListener implements PacketListener {
 
     private final AirHeadsPlugin plugin;
 
-    public PacketInterceptListener(AirHeadsPlugin plugin) {
+    public PacketInterceptListener(final AirHeadsPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -59,7 +59,6 @@
                         <excludes>
                             <exclude>org.jetbrains:*</exclude>
                             <exclude>org.intellij:*</exclude>
-                            <exclude>com.github.retrooper:*</exclude>
                         </excludes>
                     </artifactSet>
                     <filters>
@@ -75,6 +74,16 @@
                             </excludes>
                         </filter>
                     </filters>
+                    <relocations>
+                        <relocation> <!-- Packet Events -->
+                            <pattern>com.github.retrooper</pattern>
+                            <shadedPattern>not.savage.airheads.shade.com.github.retrooper</shadedPattern>
+                        </relocation>
+                        <relocation> <!-- Packet Events -->
+                            <pattern>io.github.retrooper</pattern>
+                            <shadedPattern>not.savage.airheads.shade.io.github.retrooper</shadedPattern>
+                        </relocation>
+                    </relocations>
                 </configuration>
             </plugin>
         </plugins>
@@ -89,6 +98,10 @@
             <id>helpchat-repo-releases</id>
             <url>https://repo.helpch.at/releases</url>
         </repository>
+        <repository> <!-- Packet Events -->
+            <id>codemc-releases</id>
+            <url>https://repo.codemc.io/repository/maven-releases/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -101,13 +114,13 @@
         <dependency> <!-- PaperMC Import -->
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.1-R0.1-SNAPSHOT</version>
+            <version>1.21.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency> <!-- Configurate for Configs -->
             <groupId>org.spongepowered</groupId>
             <artifactId>configurate-core</artifactId>
-            <version>4.1.2</version>
+            <version>4.2.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency> <!-- Configurate for Configs -->
@@ -116,12 +129,11 @@
             <version>4.1.2</version>
             <scope>provided</scope>
         </dependency>
-        <dependency> <!-- Maven wasn't mavening, so system dependency it is! -->
+        <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents-spigot</artifactId>
-            <version>2.7.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/dependencies/packetevents-spigot-2.7.0.jar</systemPath>
+            <version>2.8.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency> <!-- PlaceholderAPI -->
             <groupId>me.clip</groupId>
