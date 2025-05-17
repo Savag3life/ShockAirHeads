@@ -7,14 +7,12 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.Equipment;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
-import gg.optimalgames.hologrambridge.HologramAPI;
-import gg.optimalgames.hologrambridge.hologram.Hologram;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import not.savage.airheads.config.AirHead;
+import not.savage.airheads.config.AirHeadConfig;
+import not.savage.airheads.hologram.TextDisplayHologram;
 import not.savage.airheads.tasks.FloatAnimationTask;
 import not.savage.airheads.utility.Heads;
 import org.bukkit.Bukkit;
@@ -26,9 +24,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Getter
@@ -38,19 +34,22 @@ public class AirHeadEntity {
     private final float DEFAULT_ARMOR_STAND_HEIGHT = 1.975F;
 
     private final AirHeadsPlugin plugin;
-    private final AirHead config;
+    private final AirHeadConfig config;
 
     private final int entityId;
     private final UUID entityUuid;
+
     private final int glassEntityId;
     private final UUID glassEntityUuid;
+
+    private final TextDisplayHologram textDisplay;
+
     private final String name;
 
     @Setter private Location currentLocation;
     private final ItemStack headItem;
     private final ItemStack glassItem;
     private final int floatTask;
-    private final Hologram hologram;
     private final long activeAfter;
 
     /**
@@ -59,7 +58,7 @@ public class AirHeadEntity {
      * @param config The AirHead configuration
      * @param delayedTicks The number of ticks to delay the AirHead from spawning.
      */
-    public AirHeadEntity(AirHeadsPlugin plugin, String name, AirHead config, long delayedTicks) {
+    public AirHeadEntity(final AirHeadsPlugin plugin, final String name, final AirHeadConfig config, final long delayedTicks) {
         this.plugin = plugin;
         this.config = config;
         this.currentLocation = config.getLocation().clone().add(0.5, -trueHeight(), 0.5);
@@ -75,31 +74,23 @@ public class AirHeadEntity {
                 .runTaskTimerAsynchronously(JavaPlugin.getProvidingPlugin(getClass()), 0, 1)
                 .getTaskId();
 
-        if (!config.getHologramText().isEmpty()) {
-            this.hologram = HologramAPI.createHologram(currentLocation.clone().add(0, getHologramOffset(), 0));
-            for (String line : config.getHologramText()) {
-                this.hologram.appendTextLine(MiniMessage.miniMessage().deserialize(line));
-            }
-            this.hologram.getVisibilityManager().setVisibleByDefault(false);
-        } else {
-            this.hologram = null;
-        }
-
-        if (!config.getHeadTexture().equals("%player%")) {
+        if (!config.getAppearanceSettings().getHeadTexture().equals("%player%")) {
             final org.bukkit.inventory.ItemStack head = new org.bukkit.inventory.ItemStack(Material.PLAYER_HEAD, 1);
             final SkullMeta meta = (SkullMeta) head.getItemMeta();
-            Heads.setBase64ToSkullMeta(config.getHeadTexture(), meta);
+            Heads.setBase64ToSkullMeta(config.getAppearanceSettings().getHeadTexture(), meta);
             head.setItemMeta(meta);
             this.headItem = SpigotConversionUtil.fromBukkitItemStack(head);
         } else {
             this.headItem = null;
         }
 
-        if (!config.getOverlayMaterial().isAir()) {
-            this.glassItem = SpigotConversionUtil.fromBukkitItemStack(new org.bukkit.inventory.ItemStack(config.getOverlayMaterial(), 1));
+        if (!config.getAppearanceSettings().getOverlayMaterial().isAir()) {
+            this.glassItem = SpigotConversionUtil.fromBukkitItemStack(new org.bukkit.inventory.ItemStack(config.getAppearanceSettings().getOverlayMaterial(), 1));
         } else {
             this.glassItem = null;
         }
+
+        this.textDisplay = new TextDisplayHologram(plugin, config.getHologramTextDisplaySettings(), SpigotReflectionUtil.generateEntityId(), UUID.randomUUID(), currentLocation.getWorld());
     }
 
     public void spawnForPlayer(Player player) {
@@ -163,7 +154,7 @@ public class AirHeadEntity {
                         glassEntityId,
                         glassEntityUuid,
                         SpigotConversionUtil.fromBukkitEntityType(EntityType.ARMOR_STAND),
-                        SpigotConversionUtil.fromBukkitLocation(currentLocation.clone().add(0, -config.getOverlayOffset(), 0)),
+                        SpigotConversionUtil.fromBukkitLocation(currentLocation.clone().add(0, -config.getAppearanceSettings().getOverlayOffset(), 0)),
                         0.0F,
                         0,
                         null
@@ -195,30 +186,29 @@ public class AirHeadEntity {
                 PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassMetaPacket);
             }
 
-            if (config.getScale() != 1.0) {
+            if (config.getAppearanceSettings().getScale() != 1.0) {
                 // We only need to send an Attribute packet if the scale is not 1.0 (None-Default)
-                final WrapperPlayServerUpdateAttributes entityAttributes = createAttributePacket(entityId, config.getScale());
+                final WrapperPlayServerUpdateAttributes entityAttributes = createScalerPacket(entityId, config.getAppearanceSettings().getScale());
                 PacketEvents.getAPI().getPlayerManager().sendPacket(player, entityAttributes);
 
-                if (!config.getOverlayMaterial().isEmpty() && !config.getOverlayMaterial().equals("AIR")) {
-                    final WrapperPlayServerUpdateAttributes glassAttributes = createAttributePacket(glassEntityId, config.getScale() + 0.3);
+                if (glassItem != null) {
+                    final WrapperPlayServerUpdateAttributes glassAttributes = createScalerPacket(glassEntityId, config.getAppearanceSettings().getScale() + 0.3);
                     PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassAttributes);
                 }
             } else if (glassItem != null) {
-                final WrapperPlayServerUpdateAttributes glassAttributes = createAttributePacket(glassEntityId, 1.3);
+                final WrapperPlayServerUpdateAttributes glassAttributes = createScalerPacket(glassEntityId, 1.3);
                 PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassAttributes);
             }
 
-        }).thenAcceptAsync(v -> {
-            // May be needed to await completion and then execute after, but im
-            // not sure of the behavior when entities are modified before the client knows they exist.
-            // May be something to address later in a PR
-        });
+            textDisplay.spawn(player, currentLocation.clone().add(0, trueHeight(), 0));
 
-        hologram.getVisibilityManager().showTo(player);
+        }).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
-    private @NotNull WrapperPlayServerUpdateAttributes createAttributePacket(int entity, double scale) {
+    private @NotNull WrapperPlayServerUpdateAttributes createScalerPacket(int entity, double scale) {
         final WrapperPlayServerUpdateAttributes.Property scalePacket = new WrapperPlayServerUpdateAttributes.Property(
                 Attributes.SCALE,
                 scale,
@@ -234,26 +224,28 @@ public class AirHeadEntity {
         return new WrapperPlayServerUpdateAttributes(entity, List.of(scalePacket, interactionRange));
     }
 
-    public void teleport(Location location) {
+    public void teleport(final Location location) {
         CompletableFuture.runAsync(() -> {
-            final WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(entityId, SpigotConversionUtil.fromBukkitLocation(location), false);
-            if (glassItem != null) {
-                final WrapperPlayServerEntityTeleport glassTeleportPacket = new WrapperPlayServerEntityTeleport(glassEntityId, SpigotConversionUtil.fromBukkitLocation(location.clone().add(0, -config.getOverlayOffset(), 0)), false);
-                getCurrentLocation().getWorld().getPlayers().forEach(player -> {
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, teleportPacket);
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, glassTeleportPacket);
-                });
-            } else {
-                getCurrentLocation().getWorld().getPlayers().forEach(player -> {
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, teleportPacket);
-                });
-            }
+            textDisplay.teleport(location.clone().add(0, trueHeight(), 0));
+            final WrapperPlayServerEntityTeleport mainEntityTeleport = new WrapperPlayServerEntityTeleport(entityId, SpigotConversionUtil.fromBukkitLocation(location), false);
+            final WrapperPlayServerEntityTeleport overlayEntityTeleport = glassItem == null ? null :
+                    new WrapperPlayServerEntityTeleport(
+                            glassEntityId,
+                            SpigotConversionUtil.fromBukkitLocation(location.clone().add(0, -config.getAppearanceSettings().getOverlayOffset(), 0)),
+                            false
+                    );
+
+            getCurrentLocation().getWorld().getPlayers().forEach(player -> {
+                if (player.isOnline()) {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, mainEntityTeleport);
+                    if (overlayEntityTeleport != null) {
+                        PacketEvents.getAPI().getPlayerManager().sendPacket(player, overlayEntityTeleport);
+                    }
+                }
+            });
         });
 
         setCurrentLocation(location);
-
-        if (getHologram() != null)
-            getHologram().teleport(location.clone().add(0, getHologramOffset(), 0));
     }
 
     /**
@@ -263,39 +255,27 @@ public class AirHeadEntity {
         if (floatTask != -1) {
             Bukkit.getScheduler().cancelTask(floatTask);
         }
-
-        final WrapperPlayServerDestroyEntities destroyPacket = new WrapperPlayServerDestroyEntities(entityId);
-
+        final int[] entitiesToRemove = new int[glassItem != null ? 3 : 2];
+        entitiesToRemove[0] = entityId;
+        entitiesToRemove[1] = textDisplay.getEntityId();
         if (glassItem != null) {
-            final WrapperPlayServerDestroyEntities destroyGlassPacket = new WrapperPlayServerDestroyEntities(glassEntityId);
-            getCurrentLocation().getWorld().getPlayers().forEach(player -> {
-                if (player.isOnline()) {
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyGlassPacket);
-                }
-            });
-        } else {
-            currentLocation.getWorld().getPlayers().forEach(player -> {
-                if (player.isOnline()) {
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
-                }
-            });
+            entitiesToRemove[2] = glassEntityId;
         }
-
-        if (hologram != null) {
-            hologram.delete();
-        }
+        textDisplay.getHologramUpdateTask().cancel();
+        final WrapperPlayServerDestroyEntities destroyPacket = new WrapperPlayServerDestroyEntities(entitiesToRemove);
+        getCurrentLocation().getWorld().getPlayers().forEach(player -> {
+            if (player.isOnline()) {
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
+            }
+        });
     }
 
     public double trueHeight() {
-        if (config.getScale() == 1.0) return DEFAULT_ARMOR_STAND_HEIGHT;
-        if (config.getScale() < 1.0) {
-            return DEFAULT_ARMOR_STAND_HEIGHT * config.getScale();
+        final double configScale = config.getAppearanceSettings().getScale();
+        if (configScale == 1.0) return DEFAULT_ARMOR_STAND_HEIGHT;
+        if (configScale < 1.0) {
+            return DEFAULT_ARMOR_STAND_HEIGHT * configScale;
         }
-        return DEFAULT_ARMOR_STAND_HEIGHT + config.getScale();
-    }
-
-    public double getHologramOffset() {
-        return trueHeight() + config.getHologramOffset();
+        return DEFAULT_ARMOR_STAND_HEIGHT + configScale;
     }
 }

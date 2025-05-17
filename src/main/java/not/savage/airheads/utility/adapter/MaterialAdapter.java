@@ -1,7 +1,6 @@
 package not.savage.airheads.utility.adapter;
 
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;

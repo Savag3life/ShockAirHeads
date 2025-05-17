@@ -41,6 +41,7 @@ public class PacketInterceptListener implements PacketListener {
             // PacketReceiveEvent is async, so we switch back to sync
             Bukkit.getScheduler().runTask(plugin, () -> {
                 airHead.getConfig()
+                        .getInteractSettings()
                         .getInteractCommands()
                         .forEach(
                                 cmd -> Bukkit.dispatchCommand(player, cmd)
@@ -49,6 +50,7 @@ public class PacketInterceptListener implements PacketListener {
                 // Left-Click Interaction
                 if (packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                     airHead.getConfig()
+                            .getInteractSettings()
                             .getLeftClickCommands()
                             .forEach(cmd -> Bukkit.dispatchCommand(
                                             player,
@@ -57,6 +59,7 @@ public class PacketInterceptListener implements PacketListener {
                             );
 
                     airHead.getConfig()
+                            .getInteractSettings()
                             .getLeftClickConsoleCommands()
                             .forEach(cmd -> Bukkit.dispatchCommand(
                                             Bukkit.getConsoleSender(),
@@ -69,6 +72,7 @@ public class PacketInterceptListener implements PacketListener {
                 if (packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.INTERACT ||
                         packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.INTERACT_AT) {
                     airHead.getConfig()
+                            .getInteractSettings()
                             .getRightClickCommands()
                             .forEach(cmd -> Bukkit.dispatchCommand(
                                             player,
@@ -77,6 +81,7 @@ public class PacketInterceptListener implements PacketListener {
                             );
 
                     airHead.getConfig()
+                            .getInteractSettings()
                             .getRightClickConsoleCommands()
                             .forEach(cmd -> Bukkit.dispatchCommand(
                                             Bukkit.getConsoleSender(),
@@ -86,6 +91,7 @@ public class PacketInterceptListener implements PacketListener {
                 }
 
                 airHead.getConfig()
+                        .getInteractSettings()
                         .getConsoleCommands()
                         .forEach(cmd -> Bukkit.dispatchCommand(
                                         Bukkit.getConsoleSender(),
@@ -95,18 +101,22 @@ public class PacketInterceptListener implements PacketListener {
 
 
 
-                if (!airHead.getConfig().getInteractMessage().isEmpty()) {
-                    airHead.getConfig().getInteractMessage()
+                if (!airHead.getConfig().getInteractSettings()
+                        .getInteractMessage().isEmpty()) {
+                    airHead.getConfig()
+                            .getInteractSettings()
+                            .getInteractMessage()
                             .forEach(line -> player.sendMessage(MiniMessage.miniMessage().deserialize(line)));
                 }
 
 
-                if (airHead.getConfig().getSoundSettings().isEnabled()) {
+                if (airHead.getConfig().getInteractSettings()
+                        .getSoundSettings().isEnabled()) {
                     player.playSound(
                             player,
-                            airHead.getConfig().getSoundSettings().getSound(),
-                            airHead.getConfig().getSoundSettings().getVolume(),
-                            airHead.getConfig().getSoundSettings().getPitch()
+                            airHead.getConfig().getInteractSettings().getSoundSettings().getSound(),
+                            airHead.getConfig().getInteractSettings().getSoundSettings().getVolume(),
+                            airHead.getConfig().getInteractSettings().getSoundSettings().getPitch()
                     );
                 }
             });

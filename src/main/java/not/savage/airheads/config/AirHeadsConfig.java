@@ -1,24 +1,17 @@
 package not.savage.airheads.config;
 
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 
-/**
- * The main configuration file for AirHeads.
- * @see not.savage.airheads.utility.ConfigBuilder<>
- */
-@ConfigSerializable @Getter
-@Deprecated
-@SuppressWarnings("FieldMayBeFinal")
+@ConfigSerializable @Data
+@NoArgsConstructor
+@SuppressWarnings("FieldMayBeFinal") // Configurate requires this to be mutable
 public class AirHeadsConfig {
 
     private long floatAnimationOffsetTicks = 20;
-    private List<AirHead> airHeads = new ArrayList<>(Arrays.asList(
-            new AirHead()
-    ));
+    private HashMap<String, AirHeadConfig> airHeads = new HashMap<>();
 
 }

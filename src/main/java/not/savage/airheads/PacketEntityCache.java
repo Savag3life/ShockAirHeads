@@ -40,11 +40,34 @@ public class PacketEntityCache {
         return null;
     }
 
+    public AirHeadEntity getByAirHeadName(String name) {
+        for (AirHeadEntity entity : byEntityId.values()) {
+            if (entity.getName().equals(name)) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
     public void clear() {
         for (AirHeadEntity entity : byEntityId.values()) {
             entity.remove();
         }
         byEntityId.clear();
+    }
+
+    public void removeEntity(int entityId) {
+        AirHeadEntity entity = byEntityId.remove(entityId);
+        if (entity != null) {
+            entity.remove();
+        }
+    }
+
+    public void removeEntityByName(String name) {
+        AirHeadEntity entity = getEntityByName(name);
+        if (entity != null) {
+            entity.remove();
+        }
     }
 
     public void showWorld(Player player) {

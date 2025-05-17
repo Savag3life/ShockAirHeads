@@ -3,7 +3,7 @@ package not.savage.airheads.commands.subcommands;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import not.savage.airheads.AirHeadsPlugin;
 import not.savage.airheads.commands.SubCommand;
-import not.savage.airheads.config.AirHead;
+import not.savage.airheads.config.AirHeadConfig;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -22,7 +22,7 @@ public class CmdCreate implements SubCommand {
         if (plugin.getAirHeadsConfig().getAirHeads().containsKey(args[1])) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <red>That AirHead already exists!"));
         } else {
-            plugin.getAirHeadsConfig().getAirHeads().put(name, new AirHead(((Player) sender).getLocation()));
+            plugin.getAirHeadsConfig().getAirHeads().put(name, new AirHeadConfig(((Player) sender).getLocation()));
             plugin.saveUpdates();
             plugin.reloadPlugin(false);
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Created AirHead " + name));

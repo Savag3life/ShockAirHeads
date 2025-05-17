@@ -14,6 +14,9 @@ public class FloatAnimationTask extends BukkitRunnable {
     private final double stepHeight; // min height
     private final int rotationSpeed;
 
+    private final boolean rotate;
+    private final boolean floating;
+
     private final long initialDelay;
 
     private int rot = -180;
@@ -21,12 +24,14 @@ public class FloatAnimationTask extends BukkitRunnable {
 
     public FloatAnimationTask(Location origin, AirHeadEntity airHead, long initialDelay) {
         this.airHead = airHead;
-        this.minY = (origin.getY() - this.airHead.getConfig().getFloatDownMax()); // min height
-        this.maxY = (origin.getY() + this.airHead.getConfig().getFloatUpMax()); // max height
-        double ticks = this.airHead.getConfig().getFloatCycleDurationTicks(); // Total ticks for a full float cycle
+        this.minY = (origin.getY() - this.airHead.getConfig().getAnimationSettings().getFloatDownMax()); // min height
+        this.maxY = (origin.getY() + this.airHead.getConfig().getAnimationSettings().getFloatUpMax()); // max height
+        double ticks = this.airHead.getConfig().getAnimationSettings().getFloatCycleDurationTicks(); // Total ticks for a full float cycle
         this.stepHeight = (maxY - minY) / (ticks / 2); // Movement per tick
-        this.rotationSpeed = this.airHead.getConfig().getRotationPerTick();
+        this.rotationSpeed = this.airHead.getConfig().getAnimationSettings().getRotationPerTick();
         this.initialDelay = initialDelay;
+        this.rotate = this.airHead.getConfig().getAnimationSettings().isDoRotation();
+        this.floating = this.airHead.getConfig().getAnimationSettings().isDoFloat();
     }
 
     @Override
@@ -39,7 +44,7 @@ public class FloatAnimationTask extends BukkitRunnable {
         final Location curr = airHead.getCurrentLocation().clone();
 
         // Can configure an AirHead to not float.
-        if (airHead.getConfig().isDoFloat()) {
+        if (floating) {
             // Move the head up or down
             if (goingUp) {
                 curr.add(0, stepHeight, 0);
@@ -57,7 +62,7 @@ public class FloatAnimationTask extends BukkitRunnable {
         }
 
         // Can configure an AirHead to not rotate.
-        if (airHead.getConfig().isDoRotation()) {
+        if (rotate) {
             // Apply rotation
             curr.setYaw(rot);
             rot += rotationSpeed;

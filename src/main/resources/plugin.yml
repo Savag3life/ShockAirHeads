@@ -4,7 +4,6 @@ api-version: 1.21
 name: ShockAirHeads
 authors: [ Savage, SupremeVentures ]
 depend: [ packetevents ]
-softdepend: [ HologramBridge, DecentHolograms, HolographicDisplays, CMI ]
 
 commands:
   airheads:

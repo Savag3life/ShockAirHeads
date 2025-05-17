@@ -2,11 +2,11 @@ package not.savage.airheads;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import gg.optimalgames.hologrambridge.HologramAPI;
-import gg.optimalgames.hologrambridge.HologramBridge;
 import lombok.Getter;
+import lombok.NonNull;
 import not.savage.airheads.commands.CmdAirHeads;
 import not.savage.airheads.config.AirHead;
+import not.savage.airheads.config.AirHeadConfig;
 import not.savage.airheads.config.AirHeadsConfig;
 import not.savage.airheads.config.Config;
 import not.savage.airheads.listener.PacketInterceptListener;
@@ -14,21 +14,23 @@ import not.savage.airheads.listener.PlayerListener;
 import not.savage.airheads.utility.ConfigBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * The main plugin class for AirHeads.
  */
-public class AirHeadsPlugin extends JavaPlugin {
+public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
 
-    @Getter private Config airHeadsConfig;
+    private static final String CONFIG_FILE_NAME = "config.yml";
+
+    @Getter private AirHeadsConfig airHeadsConfig;
     @Getter private PacketEntityCache packetEntityCache;
 
     @Override
@@ -36,14 +38,8 @@ public class AirHeadsPlugin extends JavaPlugin {
         final Instant start = Instant.now();
         getLogger().info("Loading ShockAirHeads Plugin!");
 
-        if (!setupHologramBridge()) {
-            getLogger().severe("Failed to setup HologramBridge!");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
         loadConfig();
-        getLogger().info("Loaded ShockAirHeads config from " + getDataFolder().getAbsolutePath() + "/airheads.yml");
+        getLogger().info("Loaded ShockAirHeads config from " + getDataFolder().getAbsolutePath() + "/" + CONFIG_FILE_NAME);
 
         getLogger().info("Setting up packet based entities...");
         this.packetEntityCache = new PacketEntityCache(this);
@@ -94,19 +90,19 @@ public class AirHeadsPlugin extends JavaPlugin {
             return;
         }
 
-        if (new File(getDataFolder(), "config.yml").exists()) {
+        if (new File(getDataFolder(), "airheads.yml").exists()) {
             migrateConfig();
         }
 
-        airHeadsConfig = new ConfigBuilder<>(Config.class)
-                .withPath(new File(getDataFolder(), "airheads.yml").toPath())
+        airHeadsConfig = new ConfigBuilder<>(AirHeadsConfig.class)
+                .withPath(new File(getDataFolder(), CONFIG_FILE_NAME).toPath())
                 .build();
     }
 
     public void saveUpdates() {
         CompletableFuture.runAsync(() -> {
-            new ConfigBuilder<>(Config.class)
-                    .withPath(new File(getDataFolder(), "airheads.yml").toPath())
+            new ConfigBuilder<>(AirHeadsConfig.class)
+                    .withPath(new File(getDataFolder(), CONFIG_FILE_NAME).toPath())
                     .save(this.airHeadsConfig);
         });
     }
@@ -117,7 +113,7 @@ public class AirHeadsPlugin extends JavaPlugin {
     private void spawnFakeEntities() {
         final long offsetTicks = airHeadsConfig.getFloatAnimationOffsetTicks();
         long offset = offsetTicks;
-        for (Map.Entry<String, AirHead> airHead : airHeadsConfig.getAirHeads().entrySet()) {
+        for (Map.Entry<String, AirHeadConfig> airHead : airHeadsConfig.getAirHeads().entrySet()) {
             AirHeadEntity airHeadEntity = new AirHeadEntity(this, airHead.getKey(), airHead.getValue(), offset);
             packetEntityCache.addEntity(airHeadEntity.getEntityId(), airHeadEntity);
             offset += offsetTicks;
@@ -125,88 +121,75 @@ public class AirHeadsPlugin extends JavaPlugin {
     }
 
     /**
-     * Distribute Shaded & Unshaded versions of the plugin.
-     * If HologramBridge is not found, initialize it, but check
-     * to make sure we have it shaded first.
+     * 1.0.0 was "config.yml"
+     * 1.5.0 migrated config.yml -> airheads.yml (migration removed, now requires config reset)
+     * 2.0.0 migrates airheads.yml -> config.yml (Auto migration)
      */
-    private boolean setupHologramBridge() {
-        final Plugin hologramBridge = Bukkit.getPluginManager().getPlugin("HologramBridge");
-        if (hologramBridge != null && hologramBridge.isEnabled()) {
-            getLogger().info("HologramBridge found!");
-            return true;
-        } else {
-            try {
-                Class.forName("not.savage.shade.hologrambridge.HologramAPI");
-                initializeHologramBridge();
-                return true;
-            } catch (ClassNotFoundException e) {
-                getLogger().warning(
-                        "You have installed the wrong version of Shock AirHeads! The AirHeads version" +
-                        "installed does not include HologramBridge, you are meant to have it installed yourself... " +
-                        "if you dont want that, you can just download the version which includes it from https://github.com/Savag3life/ShockAirHeads"
-                );
-                return false;
-            }
-        }
-    }
-
-    /**
-     * ClassNotFoundException is thrown when invoked, so we can safely
-     * initialize the bridge here without worrying about it being
-     * shaded in the wrong version.
-     * Access {@link gg.optimalgames.hologrambridge.HologramAPI}
-     */
-    private void initializeHologramBridge() {
-        getLogger().info("Initializing internal HologramBridge...");
-        new HologramBridge(this, false);
-        if (!HologramAPI.hasConnector()) {
-            getLogger().warning("HologramBridge couldn't find a supported Hologram plugin!");
-        } else {
-            getLogger().info("HologramBridge initialized!");
-        }
-    }
-
-    /**
-     * Migrate the original config.yml to the new airheads.yml format.
-     * Using a map instead of list to define each airhead config section.
-     */
-    @SuppressWarnings("deprecation")
     private void migrateConfig() {
         getLogger().info("Found old config.yml, converting to airheads.yml");
-        this.airHeadsConfig = new Config();
-        final AirHeadsConfig oldConfig = new ConfigBuilder<>(AirHeadsConfig.class)
-                .withPath(new File(getDataFolder(), "config.yml").toPath())
+        this.airHeadsConfig = new AirHeadsConfig();
+        final Config oldConfig = new ConfigBuilder<>(Config.class)
+                .withPath(new File(getDataFolder(), "airheads.yml").toPath())
                 .build();
 
         if (!oldConfig.getAirHeads().isEmpty()) {
-            int x = 0;
-            for (AirHead airHead : oldConfig.getAirHeads()) {
-                airHeadsConfig.getAirHeads().put("name-" + x, airHead);
-                x++;
+            for (Map.Entry<String, AirHead> airHead : oldConfig.getAirHeads().entrySet()) {
+
+                final AirHeadConfig updatedConfig = new AirHeadConfig(airHead.getValue());
+                this.airHeadsConfig.getAirHeads().put(airHead.getKey(), updatedConfig);
             }
 
-            new ConfigBuilder<>(Config.class)
-                    .withPath(new File(getDataFolder(), "airheads.yml").toPath())
+            new ConfigBuilder<>(AirHeadsConfig.class)
+                    .withPath(new File(getDataFolder(), CONFIG_FILE_NAME).toPath())
                     .save(airHeadsConfig);
 
-            getLogger().info("Converted old config.yml to airheads.yml");
+            getLogger().info("Converted old airheads.yml to config.yml");
 
-            File backup = new File(getDataFolder(), "config.yml.backup");
+            File backup = new File(getDataFolder(), "airheads.yml.backup");
             if (backup.exists()) {
                 backup.delete();
             }
 
-            if (!new File(getDataFolder(), "config.yml").renameTo(backup)) {
+            if (!new File(getDataFolder(), "airheads.yml").renameTo(backup)) {
                 getLogger().warning("Failed to backup old config.yml");
             } else {
                 getLogger().info("Backed up old config.yml to config.yml.backup");
             }
 
-            if (!new File(getDataFolder(), "config.yml").delete()) {
+            if (!new File(getDataFolder(), "airheads.yml").delete()) {
                 getLogger().warning("Failed to delete old config.yml");
             } else {
                 getLogger().info("Deleted old config.yml");
             }
         }
+    }
+
+    @Override
+    public AirHeadEntity spawnAirHead(JavaPlugin plugin, String customId, AirHeadBuilder builder, boolean persistent) {
+        AirHeadEntity airHeadEntity = new AirHeadEntity(this, customId, builder.airHeadConfig, 0);
+        packetEntityCache.addEntity(airHeadEntity.getEntityId(), airHeadEntity);
+        if (persistent) {
+            airHeadsConfig.getAirHeads().put(customId, builder.airHeadConfig);
+            saveUpdates();
+        }
+        return airHeadEntity;
+    }
+
+    @Override
+    public Optional<AirHeadEntity> getAirHeadEntity(@NonNull String airHeadId) {
+        return Optional.ofNullable(packetEntityCache.getByAirHeadName(airHeadId));
+    }
+
+    @Override
+    public boolean removeAirHead(@NonNull String airHeadId) {
+        AirHeadEntity entity = packetEntityCache.getByAirHeadName(airHeadId);
+        if (entity != null) {
+            entity.remove();
+            packetEntityCache.removeEntityByName(airHeadId);
+            airHeadsConfig.getAirHeads().remove(airHeadId);
+            saveUpdates();
+            return true;
+        }
+        return false;
     }
 }
