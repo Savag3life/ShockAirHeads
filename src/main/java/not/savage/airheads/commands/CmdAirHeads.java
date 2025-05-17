@@ -32,7 +32,7 @@ public final class CmdAirHeads implements CommandExecutor, TabCompleter {
                  new CmdCreate(),
                  new CmdMove(),
                  new CmdDelete(),
-                 new CmdTeleport()
+                 new CmdTeleportHere()
          ));
     }
 

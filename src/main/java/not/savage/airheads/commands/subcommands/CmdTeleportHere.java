@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CmdTeleport implements SubCommand {
+public class CmdTeleportHere implements SubCommand {
 
     // /airheads tp <name>
     //          [0] [1]
@@ -26,11 +26,13 @@ public class CmdTeleport implements SubCommand {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <red>No Airhead by that name!"));
         } else {
             AirHeadConfig airHead = plugin.getAirHeadsConfig().getAirHeads().get(name);
-            airHead.setLocation(((Player) sender).getLocation());
-            plugin.getAirHeadsConfig().getAirHeads().put(name, airHead);
-            plugin.saveUpdates();
-            plugin.reloadPlugin(false);
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Moved AirHead " + name + " to your location!"));
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <red>This command can only be used by players!"));
+                return;
+            }
+
+            ((Player) sender).teleport(airHead.getLocation());
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Teleported to " + name + "'s location!"));
         }
     }
 

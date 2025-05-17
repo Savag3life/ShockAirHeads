@@ -8,12 +8,12 @@ import org.bukkit.command.CommandSender;
 public class CmdHelp implements SubCommand {
 
     public static final String HELP_MESSAGE = """
-            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>Help
-            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads create <name>
-            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads movehere <name>
-            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads delete <name>
-            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads tp <name>
-            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads reload
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <#2185da>Shock AirHeads Help Info
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads create <name> - Create an AirHead
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads tphere <name> - Move an AirHead
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads delete <name> - Remove an AirHead
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads tp <name> - Teleport to an AirHead
+            <gradient:#2185da:#cee8fd><bold>AirHeads </bold><white>» <green>/airheads reload - Reload the plugin
             """;
 
     @Override
