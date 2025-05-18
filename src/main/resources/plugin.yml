@@ -1,5 +1,5 @@
 main: not.savage.airheads.AirHeadsPlugin
-version: 2.0.0-BETA.1
+version: 2.0.0-BETA.2
 api-version: 1.21
 name: ShockAirHeads
 authors: [ Savage, SupremeVentures ]

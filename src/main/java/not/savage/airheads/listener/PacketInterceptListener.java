@@ -5,11 +5,15 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import not.savage.airheads.AirHeadEntity;
 import not.savage.airheads.AirHeadsPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.Objects;
 
 /**
  * This class listens for packet events and handles interactions with air heads.
@@ -114,7 +118,7 @@ public class PacketInterceptListener implements PacketListener {
                         .getSoundSettings().isEnabled()) {
                     player.playSound(
                             player,
-                            airHead.getConfig().getInteractSettings().getSoundSettings().getSound(),
+                            Objects.requireNonNull(RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(airHead.getConfig().getInteractSettings().getSoundSettings().getSound())),
                             airHead.getConfig().getInteractSettings().getSoundSettings().getVolume(),
                             airHead.getConfig().getInteractSettings().getSoundSettings().getPitch()
                     );

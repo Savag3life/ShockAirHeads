@@ -1,14 +1,12 @@
 package not.savage.airheads.config;
 
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import not.savage.airheads.hologram.HologramConfig;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.NamespacedKey;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -41,7 +39,7 @@ public class AirHeadConfig {
         this.interactSettings.soundSettings.enabled = oldConfig.getSoundSettings().isEnabled();
         this.interactSettings.soundSettings.volume = oldConfig.getSoundSettings().getVolume();
         this.interactSettings.soundSettings.pitch = oldConfig.getSoundSettings().getPitch();
-        this.interactSettings.soundSettings.sound = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(oldConfig.getSoundSettings().getSound().key());
+        this.interactSettings.soundSettings.sound = NamespacedKey.minecraft("entity.player.levelup");
 
         this.hologramTextDisplaySettings.setHologramText(oldConfig.getHologramText());
         this.hologramTextDisplaySettings.setHologramOffset(oldConfig.getHologramText().size() * 0.25);
@@ -111,7 +109,7 @@ public class AirHeadConfig {
         @ConfigSerializable @Data public static class SoundSettings {
             private float volume = 1.0f;
             private float pitch = 1.0f;
-            private Sound sound = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(Sound.ENTITY_PLAYER_LEVELUP.key());
+            private NamespacedKey sound = NamespacedKey.minecraft("entity.player.levelup");
             private boolean enabled = true;
         }
     }

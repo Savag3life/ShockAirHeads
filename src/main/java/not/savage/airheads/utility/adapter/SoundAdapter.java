@@ -2,6 +2,7 @@ package not.savage.airheads.utility.adapter;
 
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
+import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +20,10 @@ public class SoundAdapter implements TypeSerializer<Sound> {
 
     @Override
     public void serialize(Type type, @Nullable Sound obj, ConfigurationNode node) throws SerializationException {
-        node.set(NamespacedKey.class, new NamespacedKey(obj.key().namespace(), obj.key().value()));
+        if (obj == null) {
+            node.set(null);
+            return;
+        }
+        node.set(NamespacedKey.class, ((Keyed) obj).getKey());
     }
 }

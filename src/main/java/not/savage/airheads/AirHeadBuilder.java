@@ -5,6 +5,7 @@ import not.savage.airheads.hologram.BillboardConstraints;
 import not.savage.airheads.hologram.TextAlignment;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 
 import java.util.List;
@@ -194,7 +195,7 @@ public class AirHeadBuilder {
      * @param sound Sound to play.
      * @return self
      */
-    public AirHeadBuilder setSound(Sound sound, float volume, float pitch) {
+    public AirHeadBuilder setSound(NamespacedKey sound, float volume, float pitch) {
         if (sound == null) {
             throw new IllegalArgumentException("Sound cannot be null");
         }
