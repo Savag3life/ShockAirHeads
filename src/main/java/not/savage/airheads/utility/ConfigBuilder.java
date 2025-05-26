@@ -6,11 +6,9 @@ import lombok.Setter;
 import not.savage.airheads.utility.adapter.LocationAdapter;
 import not.savage.airheads.utility.adapter.MaterialAdapter;
 import not.savage.airheads.utility.adapter.NamespacedKeyAdapter;
-import not.savage.airheads.utility.adapter.SoundAdapter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
 import org.jetbrains.annotations.Contract;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationOptions;
@@ -55,7 +53,6 @@ public class ConfigBuilder<T> {
 
         typeSerializers.register(Location.class, new LocationAdapter())
                 .register(NamespacedKey.class, new NamespacedKeyAdapter())
-                .register(Sound.class, new SoundAdapter())
                 .register(Material.class, new MaterialAdapter());
     }
 

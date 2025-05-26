@@ -6,7 +6,6 @@ import not.savage.airheads.hologram.TextAlignment;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
 
 import java.util.List;
 import java.util.Optional;

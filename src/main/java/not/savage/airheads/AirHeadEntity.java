@@ -175,7 +175,7 @@ public class AirHeadEntity {
                 final WrapperPlayServerEntityMetadata glassMetaPacket = new WrapperPlayServerEntityMetadata(
                         glassEntityId,
                         List.of(
-                                new EntityData( // Invisible
+                                new EntityData<>( // Invisible
                                         0,
                                         EntityDataTypes.BYTE,
                                         (byte) 0x20
