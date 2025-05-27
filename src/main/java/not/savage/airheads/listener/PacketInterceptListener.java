@@ -12,8 +12,10 @@ import not.savage.airheads.AirHeadEntity;
 import not.savage.airheads.AirHeadsPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This class listens for packet events and handles interactions with air heads.
@@ -28,8 +30,10 @@ public class PacketInterceptListener implements PacketListener {
     }
 
     @Override
-    public void onUserLogin(UserLoginEvent event) {
-        plugin.getPacketEntityCache().showWorld(event.getPlayer());
+    public void onUserLogin(@NotNull UserLoginEvent event) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            CompletableFuture.runAsync(() -> plugin.getPacketEntityCache().showWorld(event.getPlayer()));
+        }, 5L);
     }
 
     @Override
