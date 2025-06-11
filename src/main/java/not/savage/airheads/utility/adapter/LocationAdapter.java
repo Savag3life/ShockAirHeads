@@ -41,6 +41,10 @@ public class LocationAdapter implements TypeSerializer<Location> {
             world = Bukkit.getWorld(worldId);
         }
 
+        if (world == null) {
+            throw new SerializationException("World not found: " + worldId);
+        }
+
         final double x = getValueIfPresent(value, LOCATION_X_POS_NODE, Double.class, 0.0D);
         final double y = getValueIfPresent(value, LOCATION_Y_POS_NODE, Double.class, 0.0D);
         final double z = getValueIfPresent(value, LOCATION_Z_POS_NODE, Double.class, 0.0D);

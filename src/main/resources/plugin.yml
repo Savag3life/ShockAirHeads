@@ -3,6 +3,7 @@ version: 2.0.1
 api-version: 1.21
 name: ShockAirHeads
 authors: [ Savage, SupremeVentures ]
+softdepend: [ Multiverse-Core ]
 
 commands:
   airheads:
