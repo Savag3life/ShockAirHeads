@@ -5,6 +5,8 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -106,9 +108,6 @@ public class PacketInterceptListener implements PacketListener {
                                         cmd.replace("%player%", player.getName())
                                 )
                         );
-
-
-
                 if (!airHead.getConfig().getInteractSettings()
                         .getInteractMessage().isEmpty()) {
                     airHead.getConfig()
@@ -126,6 +125,22 @@ public class PacketInterceptListener implements PacketListener {
                             airHead.getConfig().getInteractSettings().getSoundSettings().getVolume(),
                             airHead.getConfig().getInteractSettings().getSoundSettings().getPitch()
                     );
+                }
+
+                if (!airHead.getConfig().getInteractSettings().getSendTo().isEmpty()) {
+                    ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+                    try {
+                        out.writeUTF("Connect");
+                        out.writeUTF(airHead.getConfig().getInteractSettings().getSendTo());
+                        player.sendPluginMessage(plugin, "BungeeCord", out.toByteArray());
+                    } catch (Exception e) {
+                        player.sendMessage(
+                                MiniMessage.miniMessage().deserialize(
+                                        "<red>Error sending to server: " + airHead.getConfig().getInteractSettings().getSendTo() + "."
+                                )
+                        );
+                    }
                 }
             });
         }

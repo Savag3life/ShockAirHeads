@@ -112,6 +112,10 @@ public class AirHeadConfig {
             private NamespacedKey sound = NamespacedKey.minecraft("entity.player.levelup");
             private boolean enabled = true;
         }
+
+
+        @Comment("Send to a bungee server within the network on interact")
+        @Getter private String sendTo = "";
     }
 
     private AnimationSettings animationSettings = new AnimationSettings();
