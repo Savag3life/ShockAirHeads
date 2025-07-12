@@ -5,10 +5,7 @@ import io.papermc.paper.registry.RegistryKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -68,7 +65,9 @@ public class AirHead {
     @ConfigSerializable @Setter @Getter public static class SoundSettings {
          private float volume = 1.0f;
          private float pitch = 1.0f;
-         private Sound sound = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(Sound.ENTITY_PLAYER_LEVELUP.key());
+         private Sound sound = RegistryAccess.registryAccess()
+                 .getRegistry(RegistryKey.SOUND_EVENT)
+                 .get(new NamespacedKey("minecraft", "entity.player.levelup"));
          private boolean enabled = true;
     }
 
