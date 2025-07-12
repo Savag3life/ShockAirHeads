@@ -59,6 +59,8 @@ public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
         PacketEvents.getAPI().init();
         PacketEvents.getAPI().getEventManager().registerListener(new PacketInterceptListener(this), PacketListenerPriority.NORMAL);
 
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+
         getLogger().info("Setting up packet based entities...");
         this.packetEntityCache = new PacketEntityCache(this);
 
@@ -75,6 +77,7 @@ public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
     public void onDisable() {
         getLogger().info("Shutting down Shock ShockAirHeads Plugin!");
         getPacketEntityCache().clear();
+        Bukkit.getMessenger().unregisterOutgoingPluginChannel(this, "BungeeCord");
         PacketEvents.getAPI().terminate();
     }
 
