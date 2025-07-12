@@ -1,7 +1,8 @@
-# Shock AirHeads
+# Shock AirHeads 
 A simple but more creative solution to the typical need for an NPC/Citizen. Instead, you can add flare & personality to your features & guide players towards the "shiny" things you want them to interact with.
 
 ## Features
+- 1.20.5 - 1.21.7 Supported
 - Create unlimited unique AirHeads, put them everywhere!
 - Configure each AirHeads animation, appearance, and behavior.
 - Lightweight & fast. No real entities bogging down your server.
@@ -10,6 +11,7 @@ A simple but more creative solution to the typical need for an NPC/Citizen. Inst
 - Scale heads up to 10x normal size, and down to 5% of normal size.
 - Sends messages, play sounds, dispatch console commands or execute commands as the player.
 - Add block-overlays to the AirHead, to add another layer of depth to your AirHeads.
+- Velocity Send-To-Server support
 - Does __not require__ [SVCommonsLib](https://supremeventures.ca/discord)! But you should still check us out :p
 
 ![airheads](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/animation.gif)
@@ -108,6 +110,9 @@ A simple but more creative solution to the typical need for an NPC/Citizen. Inst
         pitch: 1.0
         sound: minecraft:entity.player.levelup
         enabled: true
+      # Send a player to another server when they interact with the AirHead.
+      # leave empty to disable.
+      send-to: "factions" 
     animation-settings:
       # Should the head float up and down?
       do-float: true
