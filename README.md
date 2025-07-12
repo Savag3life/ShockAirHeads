@@ -170,7 +170,7 @@ public AirheadApiExample(final JavaPlugin myCustomPlugin) {
 }
 ```
 ## Credits
-- [Packet Events](https://github.com/retrooper/packetevents)
+- [Packet Events](https://github.com/retrooper/packetevents) - Massive thanks to Retrooper for the PacketEvents library, does all the heavy lifting for us, and is a great library to use for any plugin that needs to handle packets.
 - [Minecraft Protocol](https://minecraft.wiki/w/Java_Edition_protocol/)
 - [Adventure](https://github.com/KyoriPowered/adventure)
 - [Configurate](https://github.com/SpongePowered/Configurate)
