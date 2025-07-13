@@ -135,6 +135,7 @@ public class PacketInterceptListener implements PacketListener {
                         out.writeUTF(airHead.getConfig().getInteractSettings().getSendTo());
                         player.sendPluginMessage(plugin, "BungeeCord", out.toByteArray());
                     } catch (Exception e) {
+                        e.printStackTrace();
                         player.sendMessage(
                                 MiniMessage.miniMessage().deserialize(
                                         "<red>Error sending to server: " + airHead.getConfig().getInteractSettings().getSendTo() + "."
