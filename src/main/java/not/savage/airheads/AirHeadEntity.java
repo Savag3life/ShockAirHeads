@@ -28,12 +28,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 @Getter
 public class AirHeadEntity {
 
     // Armor Stand AABB is 0.5 x 0.5 x 1.975
-    private final float DEFAULT_ARMOR_STAND_HEIGHT = 1.975F;
+    public static final float DEFAULT_ARMOR_STAND_HEIGHT = 1.975F;
 
     private final AirHeadsPlugin plugin;
     private final AirHeadConfig config;
@@ -63,18 +64,18 @@ public class AirHeadEntity {
     public AirHeadEntity(final AirHeadsPlugin plugin, final String name, final AirHeadConfig config, final long delayedTicks) {
         this.plugin = plugin;
         this.config = config;
-        this.currentLocation = config.getLocation().clone().add(0.5, -trueHeight(), 0.5);
-        this.activeAfter = System.currentTimeMillis() + (delayedTicks * 50);
+        currentLocation = config.getLocation().clone().add(0.5, -trueHeight(), 0.5);
+        activeAfter = System.currentTimeMillis() + (delayedTicks * 50);
 
-        this.entityId = SpigotReflectionUtil.generateEntityId();
-        this.entityUuid = UUID.randomUUID();
+        entityId = SpigotReflectionUtil.generateEntityId();
+        entityUuid = UUID.randomUUID();
 
-        this.glassEntityId = SpigotReflectionUtil.generateEntityId();
-        this.glassEntityUuid = UUID.randomUUID();
+        glassEntityId = SpigotReflectionUtil.generateEntityId();
+        glassEntityUuid = UUID.randomUUID();
 
         this.name = name;
 
-        this.floatTask = new FloatAnimationTask(currentLocation, this, activeAfter)
+        floatTask = new FloatAnimationTask(currentLocation, this, activeAfter)
                 .runTaskTimerAsynchronously(JavaPlugin.getProvidingPlugin(getClass()), 0, 1)
                 .getTaskId();
 
@@ -83,18 +84,18 @@ public class AirHeadEntity {
             final SkullMeta meta = (SkullMeta) head.getItemMeta();
             Heads.setBase64ToSkullMeta(config.getAppearanceSettings().getHeadTexture(), meta);
             head.setItemMeta(meta);
-            this.headItem = SpigotConversionUtil.fromBukkitItemStack(head);
+            headItem = SpigotConversionUtil.fromBukkitItemStack(head);
         } else {
-            this.headItem = null;
+            headItem = null;
         }
 
         if (!config.getAppearanceSettings().getOverlayMaterial().isAir()) {
-            this.glassItem = SpigotConversionUtil.fromBukkitItemStack(new org.bukkit.inventory.ItemStack(config.getAppearanceSettings().getOverlayMaterial(), 1));
+            glassItem = SpigotConversionUtil.fromBukkitItemStack(new org.bukkit.inventory.ItemStack(config.getAppearanceSettings().getOverlayMaterial(), 1));
         } else {
-            this.glassItem = null;
+            glassItem = null;
         }
 
-        this.textDisplay = new TextDisplayHologram(plugin, config.getHologramTextDisplaySettings(), SpigotReflectionUtil.generateEntityId(), UUID.randomUUID(), currentLocation.getWorld());
+        textDisplay = new TextDisplayHologram(plugin, config.getHologramTextDisplaySettings(), SpigotReflectionUtil.generateEntityId(), UUID.randomUUID(), currentLocation.getWorld());
     }
 
     public void spawnForPlayer(Player player) {
@@ -207,7 +208,7 @@ public class AirHeadEntity {
             textDisplay.spawn(player, currentLocation.clone().add(0, trueHeight(), 0));
 
         }).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to spawn AirHead for player %s".formatted(player.getName()), throwable);
             return null;
         });
     }
