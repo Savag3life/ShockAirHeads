@@ -78,6 +78,8 @@ public class TextDisplayHologram {
     private double offset;
     private final HologramUpdateTask hologramUpdateTask;
 
+    private transient Location currentLocation;
+
     public TextDisplayHologram(final AirHeadsPlugin plugin, final HologramConfig config,
                                final int entityId, final UUID uuid, final World world) {
         this.entityId = entityId;
@@ -187,6 +189,7 @@ public class TextDisplayHologram {
         location.add(0, getOffset(), 0);
         location.setPitch(pitch);
         location.setYaw(pitch);
+        this.currentLocation = location;
         CompletableFuture.runAsync(() -> {
             // Packet to spawn the actual text-display entity.
             final WrapperPlayServerSpawnEntity addDisplayEntityPacket = new WrapperPlayServerSpawnEntity(
@@ -216,6 +219,7 @@ public class TextDisplayHologram {
         location.add(0, getOffset(), 0);
         location.setPitch(pitch);
         location.setYaw(yaw);
+        this.currentLocation = location;
         CompletableFuture.runAsync(() -> {
             final WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(
                     getEntityId(),
