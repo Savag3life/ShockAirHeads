@@ -2,7 +2,7 @@
 A simple but more creative solution to the typical need for an NPC/Citizen. Instead, you can add flare & personality to your features & guide players towards the "shiny" things you want them to interact with.
 
 ## Features
-- 1.20.5 - 1.21.7 Supported
+- 1.20.5 - 1.21.8 Supported
 - Create unlimited unique AirHeads, put them everywhere!
 - Configure each AirHeads animation, appearance, and behavior.
 - Lightweight & fast. No real entities bogging down your server.
@@ -12,7 +12,6 @@ A simple but more creative solution to the typical need for an NPC/Citizen. Inst
 - Sends messages, play sounds, dispatch console commands or execute commands as the player.
 - Add block-overlays to the AirHead, to add another layer of depth to your AirHeads.
 - Velocity Send-To-Server support
-- Does __not require__ [SVCommonsLib](https://supremeventures.ca/discord)! But you should still check us out :p
 
 ![airheads](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/animation.gif)
 ![airheads-1](https://github.com/Savag3life/ShockAirHeads/blob/main/assets/overlays.gif)
