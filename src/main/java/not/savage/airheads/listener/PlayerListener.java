@@ -18,16 +18,12 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent e) {
         if (!e.getTo().getWorld().getName().equals(e.getFrom().getWorld().getName())) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                plugin.getPacketEntityCache().showWorld(e.getPlayer());
-            }, 1);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getPacketEntityCache().showWorld(e.getPlayer()), 1);
         }
     }
 
     @EventHandler
     public void onPlayerChangeWorld(PlayerChangedWorldEvent e) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            plugin.getPacketEntityCache().showWorld(e.getPlayer());
-        }, 1);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getPacketEntityCache().showWorld(e.getPlayer()), 1);
     }
 }

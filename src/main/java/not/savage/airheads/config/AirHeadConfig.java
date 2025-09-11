@@ -1,5 +1,7 @@
 package not.savage.airheads.config;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,6 +9,7 @@ import not.savage.airheads.hologram.HologramConfig;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -22,48 +25,8 @@ public class AirHeadConfig {
         this.location = location;
     }
 
-    /**
-     * Migration Method. ForRemoval = true
-     * @param oldConfig The old config to migrate from.
-     */
-    public AirHeadConfig(final AirHead oldConfig) {
-        this.location = oldConfig.getLocation();
-
-        this.interactSettings.interactCommands = oldConfig.getInteractCommands();
-        this.interactSettings.leftClickCommands = oldConfig.getLeftClickCommands();
-        this.interactSettings.rightClickCommands = oldConfig.getRightClickCommands();
-        this.interactSettings.consoleCommands = oldConfig.getConsoleCommands();
-        this.interactSettings.leftClickConsoleCommands = oldConfig.getLeftClickConsoleCommands();
-        this.interactSettings.rightClickConsoleCommands = oldConfig.getRightClickConsoleCommands();
-        this.interactSettings.interactMessage = oldConfig.getInteractMessage();
-        this.interactSettings.soundSettings.enabled = oldConfig.getSoundSettings().isEnabled();
-        this.interactSettings.soundSettings.volume = oldConfig.getSoundSettings().getVolume();
-        this.interactSettings.soundSettings.pitch = oldConfig.getSoundSettings().getPitch();
-        this.interactSettings.soundSettings.sound = NamespacedKey.minecraft("entity.player.levelup");
-
-        this.hologramTextDisplaySettings.setHologramText(oldConfig.getHologramText());
-        this.hologramTextDisplaySettings.setHologramOffset(oldConfig.getHologramText().size() * 0.25);
-
-        this.animationSettings.doFloat = oldConfig.isDoFloat();
-        this.animationSettings.floatUpMax = oldConfig.getFloatUpMax();
-        this.animationSettings.floatDownMax = oldConfig.getFloatDownMax();
-        this.animationSettings.floatCycleDurationTicks = oldConfig.getFloatCycleDurationTicks();
-        this.animationSettings.doRotation = oldConfig.isDoRotation();
-        this.animationSettings.rotationPerTick = oldConfig.getRotationPerTick();
-
-        if (this.animationSettings.doRotation) {
-            this.location.setPitch(0.0F);
-            this.location.setYaw(0.0F);
-        }
-
-        this.appearanceSettings.headTexture = oldConfig.getHeadTexture();
-        this.appearanceSettings.scale = oldConfig.getScale();
-        this.appearanceSettings.overlayMaterial = oldConfig.getOverlayMaterial();
-        this.appearanceSettings.overlayOffset = oldConfig.getOverlayOffset();
-    }
-
     private Location location;
-    private HologramConfig hologramTextDisplaySettings = new HologramConfig();
+    private HologramConfig hologramTextDisplaySettings = HologramConfig.builder().build();
 
     private AppearanceSettings appearanceSettings = new AppearanceSettings();
     @ConfigSerializable @Data public static class AppearanceSettings {
@@ -111,6 +74,18 @@ public class AirHeadConfig {
             private float pitch = 1.0f;
             private NamespacedKey sound = NamespacedKey.minecraft("entity.player.levelup");
             private boolean enabled = true;
+
+            private transient Sound cachedSound = null;
+            public Sound sound() {
+                if (cachedSound == null && sound != null) {
+                    try {
+                        cachedSound = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(sound);
+                    } catch (IllegalArgumentException ignored) {
+                        // Silently fail if the sound is invalid since we don't have a logger here
+                    }
+                }
+                return cachedSound;
+            }
         }
 
 

@@ -13,12 +13,12 @@ import lombok.Getter;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import not.savage.airheads.AirHeadsPlugin;
 import not.savage.airheads.tasks.HologramUpdateTask;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,15 +30,15 @@ import java.util.concurrent.CompletableFuture;
 @Getter
 public class TextDisplayHologram {
 
-    // Entity Meta
+    // Entity Meta Fields
     private final int entityId;
     private final UUID uuid;
-    private final AirHeadsPlugin plugin;
+    private final JavaPlugin plugin;
     private final HologramConfig config;
 
     private final World world;
 
-    // Display Entity
+    // Display Entity Fields
     private final int interpolationDelay;
     private final int transformationInterpolationDelay;
     private final int positionInterpolationDelay;
@@ -49,10 +49,12 @@ public class TextDisplayHologram {
     // Config doesn't modify these.
     private final Quaternion4f rotationLeft = new Quaternion4f(0, 0, 0, 1);
     private final Quaternion4f rotationRight = new Quaternion4f(0, 0, 0, 1);
+    private final int brightnessOverride = -1; // blockLight << 4 | skyLight << 20
+    private final int glowOverride = -1;
+    private final int lineWidth = 200;
 
     private byte billboardConstraints = 0; // 0 = FIXED, 1 = VERTICAL, 2 = HORIZONTAL, 3 = CENTERED
     // No Config for brightness override.
-    private final int brightnessOverride = -1; // blockLight << 4 | skyLight << 20
 
     private final float viewRange;
     private final float shadowRadius;
@@ -63,24 +65,20 @@ public class TextDisplayHologram {
     private final float pitch;
     private final float yaw;
 
-    private int glowOverride = -1;
-
     // Text Display
-    private final List<String> text;
-
-    private int lineWidth = 200;
+    private final List<String> text = new ArrayList<>();
 
     private int backgroundColor = 0x4000000;
     // Config doesn't modify this.
     private final byte textOpacity = -1;
     @Setter private byte meta = 0;
 
-    private double offset;
+    private final double offset;
     private final HologramUpdateTask hologramUpdateTask;
 
     private transient Location currentLocation;
 
-    public TextDisplayHologram(final AirHeadsPlugin plugin, final HologramConfig config,
+    public TextDisplayHologram(final JavaPlugin plugin, final HologramConfig config,
                                final int entityId, final UUID uuid, final World world) {
         this.entityId = entityId;
         this.uuid = uuid;
@@ -88,12 +86,12 @@ public class TextDisplayHologram {
         this.plugin = plugin;
         this.world = world;
 
-        this.interpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
-        this.positionInterpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
-        this.transformationInterpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
+        interpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
+        positionInterpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
+        transformationInterpolationDelay = config.getUpdateIntervalTicks() == -1 ? 0 : config.getUpdateIntervalTicks();
 
-        this.transformation = new Vector3f(config.getTranslationX(), config.getTranslationY(), config.getTranslationZ());
-        this.scale = new Vector3f(config.getScaleX(), config.getScaleY(), config.getScaleZ());
+        transformation = new Vector3f(config.getTranslationX(), config.getTranslationY(), config.getTranslationZ());
+        scale = new Vector3f(config.getScaleX(), config.getScaleY(), config.getScaleZ());
 
         BillboardConstraints.fromString(config.getBillboardConstraints()).ifPresentOrElse(
                 constraints -> this.billboardConstraints = constraints.getId(),
@@ -104,7 +102,7 @@ public class TextDisplayHologram {
                 }
         );
 
-        this.text = config.getHologramText();
+        text.addAll(config.getHologramText());
 
         TextAlignment.fromString(config.getTextAlignment()).ifPresentOrElse(
                 alignment -> alignment.align(this),
@@ -115,17 +113,17 @@ public class TextDisplayHologram {
                 }
         );
 
-        this.shadowRadius = config.getShadowRadius();
-        this.shadowStrength = config.getShadowStrength();
-        this.viewRange = config.getRenderDistance();
+        shadowRadius = config.getShadowRadius();
+        shadowStrength = config.getShadowStrength();
+        viewRange = config.getRenderDistance();
 
-        this.width = config.getWidth();
-        this.height = config.getHeight();
-        this.pitch = config.getPitch();
-        this.yaw = config.getYaw();
+        width = config.getWidth();
+        height = config.getHeight();
+        pitch = config.getPitch();
+        yaw = config.getYaw();
 
-        this.setHasShadow(config.isHasTextShadow());
-        this.setIsSeeThrough(config.isTransparentBackground());
+        setHasShadow(config.isHasTextShadow());
+        setIsSeeThrough(config.isTransparentBackground());
 
         String hex = config.getBackgroundColor();
         if (hex.startsWith("#")) {
@@ -145,10 +143,10 @@ public class TextDisplayHologram {
     }
 
     public WrapperPlayServerEntityMetadata toPacket(final Player player) {
-        return new WrapperPlayServerEntityMetadata(entityId, packDirty(player));
+        return new WrapperPlayServerEntityMetadata(entityId, packEntityData(player));
     }
 
-    private List<EntityData<?>> packDirty(final Player player) {
+    private List<EntityData<?>> packEntityData(final Player player) {
         final List<EntityData<?>> data = new ArrayList<>();
 
         // DisplayEntity Fields
@@ -204,13 +202,18 @@ public class TextDisplayHologram {
 
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, addDisplayEntityPacket); // Send entity spawn
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, toPacket(player)); // Send update entity
+        }).exceptionally(ex -> {
+            plugin.getLogger().warning("Failed to spawn hologram for player " + player.getName() + " at " + location + ": " + ex.getMessage());
+            return null;
         });
     }
 
     public void update(final Player player) {
-        CompletableFuture.runAsync(() -> {
-            PacketEvents.getAPI().getPlayerManager().sendPacket(player, toPacket(player));
-        });
+        CompletableFuture.runAsync(() -> PacketEvents.getAPI().getPlayerManager().sendPacket(player, toPacket(player)))
+                .exceptionally(ex -> {
+                    plugin.getLogger().warning("Failed to update hologram for player " + player.getName() + ": " + ex.getMessage());
+                    return null;
+                });
     }
 
     public void teleport(final Location location) {
@@ -227,6 +230,9 @@ public class TextDisplayHologram {
                     false
             );
             location.getWorld().getPlayers().forEach(player -> PacketEvents.getAPI().getPlayerManager().sendPacket(player, teleportPacket));
+        }).exceptionally(ex -> {
+            plugin.getLogger().warning("Failed to teleport hologram to " + location + ": " + ex.getMessage());
+            return null;
         });
     }
 

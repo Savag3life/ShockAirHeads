@@ -1,5 +1,7 @@
 package not.savage.airheads.hologram;
 
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Data;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -7,10 +9,10 @@ import java.util.List;
 
 @ConfigSerializable @Data
 @SuppressWarnings("FieldMayBeFinal")
+@Builder(access = AccessLevel.PUBLIC)
 public class HologramConfig {
 
     // How the Hologram is displayed. FIXED, VERTICAL, HORIZONTAL, CENTERED
-    // FIXED =
     private String billboardConstraints = BillboardConstraints.VERTICAL.name();
     private String textAlignment = TextAlignment.CENTERED.name();
 

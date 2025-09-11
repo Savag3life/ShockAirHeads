@@ -11,6 +11,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerTextures;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Base64;
 import java.util.UUID;
@@ -47,7 +48,7 @@ public class Heads {
         URL urlObject;
         try {
             urlObject = getUrlFromBase64(base64);
-        } catch (Throwable exception) {
+        } catch (Exception exception) {
             throw new RuntimeException("Invalid URL", exception);
         }
         textures.setSkin(urlObject); // Set the skin of the player profile to the URL
@@ -78,7 +79,7 @@ public class Heads {
             }
 
             skin = textures.get("SKIN").getAsJsonObject().get("url").getAsString();
-            url = new URL(skin);
+            url = URI.create(skin).toURL();
         } catch (IllegalArgumentException t) {
             throw new IllegalArgumentException("Invalid base64 string: " + base64);
         } catch (JsonSyntaxException t) {

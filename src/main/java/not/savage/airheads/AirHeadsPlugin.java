@@ -70,7 +70,7 @@ public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
         registerCommands();
         getLogger().info("Registered `/airheads reload` command.");
 
-        getLogger().info(String.format("ShockAirHeads Plugin loaded in %sms", Duration.between(start, Instant.now()).toMillis()));
+        getLogger().info("ShockAirHeads Plugin loaded in %dms".formatted(Duration.between(start, Instant.now()).toMillis()));
     }
 
     @Override
@@ -138,50 +138,6 @@ public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
             AirHeadEntity airHeadEntity = new AirHeadEntity(this, airHead.getKey(), airHead.getValue(), offset);
             packetEntityCache.addEntity(airHeadEntity.getEntityId(), airHeadEntity);
             offset += offsetTicks;
-        }
-    }
-
-    /**
-     * 1.0.0 was "config.yml"
-     * 1.5.0 migrated config.yml -> airheads.yml (migration removed, now requires config reset)
-     * 2.0.0 migrates airheads.yml -> config.yml (Auto migration)
-     */
-    private void migrateConfig() {
-        getLogger().info("Found old config.yml, converting to airheads.yml");
-        this.airHeadsConfig = new AirHeadsConfig();
-        final Config oldConfig = new ConfigBuilder<>(Config.class)
-                .withPath(new File(getDataFolder(), "airheads.yml").toPath())
-                .build();
-
-        if (!oldConfig.getAirHeads().isEmpty()) {
-            for (Map.Entry<String, AirHead> airHead : oldConfig.getAirHeads().entrySet()) {
-
-                final AirHeadConfig updatedConfig = new AirHeadConfig(airHead.getValue());
-                this.airHeadsConfig.getAirHeads().put(airHead.getKey(), updatedConfig);
-            }
-
-            new ConfigBuilder<>(AirHeadsConfig.class)
-                    .withPath(new File(getDataFolder(), CONFIG_FILE_NAME).toPath())
-                    .save(airHeadsConfig);
-
-            getLogger().info("Converted old airheads.yml to config.yml");
-
-            File backup = new File(getDataFolder(), "airheads.yml.backup");
-            if (backup.exists()) {
-                backup.delete();
-            }
-
-            if (!new File(getDataFolder(), "airheads.yml").renameTo(backup)) {
-                getLogger().warning("Failed to backup old config.yml");
-            } else {
-                getLogger().info("Backed up old config.yml to config.yml.backup");
-            }
-
-            if (!new File(getDataFolder(), "airheads.yml").delete()) {
-                getLogger().warning("Failed to delete old config.yml");
-            } else {
-                getLogger().info("Deleted old config.yml");
-            }
         }
     }
 
