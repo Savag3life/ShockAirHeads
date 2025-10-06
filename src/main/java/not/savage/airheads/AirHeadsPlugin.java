@@ -6,10 +6,8 @@ import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import lombok.Getter;
 import lombok.NonNull;
 import not.savage.airheads.commands.CmdAirHeads;
-import not.savage.airheads.config.AirHead;
 import not.savage.airheads.config.AirHeadConfig;
 import not.savage.airheads.config.AirHeadsConfig;
-import not.savage.airheads.config.Config;
 import not.savage.airheads.listener.PacketInterceptListener;
 import not.savage.airheads.listener.PlayerListener;
 import not.savage.airheads.utility.ConfigBuilder;
@@ -109,10 +107,6 @@ public class AirHeadsPlugin extends JavaPlugin implements AirHeadAPI {
             getLogger().severe("Failed to create data folder!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
-        }
-
-        if (new File(getDataFolder(), "airheads.yml").exists()) {
-            migrateConfig();
         }
 
         airHeadsConfig = new ConfigBuilder<>(AirHeadsConfig.class)
